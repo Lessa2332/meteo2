@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="Метеощоденник">
 <meta property="og:title" content="Метеощоденник — Дитяча метеолабораторія">
 <meta property="og:description" content="Квести, інтерактивний термометр, роза вітрів, офлайн-режим, PWA та порівняння з Open-Meteo.">
-  <link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
+   <link rel="manifest" href="manifest.json">
 <title>Метеощоденник — Дитяча метеолабораторія</title>
 <style>
 :root{
@@ -1451,5 +1451,12 @@ function boot(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
 else boot();
 </script>
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('[SW] Зареєстровано:', reg.scope))
+      .catch(err => console.warn('[SW] Помилка:', err));
+  });
+}
 </body>
 </html>
