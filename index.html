@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1E293B">
+<meta name="description" content="Метеощоденник — дитяча метеолабораторія та щоденник спостережень за погодою (7-10 років). Автономно, офлайн, без реклами.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Метеощоденник">
+<meta property="og:title" content="Метеощоденник — Дитяча метеолабораторія">
+<meta property="og:description" content="Квести, інтерактивний термометр, роза вітрів, офлайн-режим, PWA та порівняння з Open-Meteo.">
+  <link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
+<title>Метеощоденник — Дитяча метеолабораторія</title>
+<style>
+:root{
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --bg:#F8FAFC; --sur:#FFFFFF; --sur2:#F1F5F9;
+  --ink:#0F172A; --ink2:#475569; --ink3:#94A3B8; --line:#E2E8F0;
+  --acc:#F59E0B; --accS:#FEF3C7; --pri:#0F172A; --sky:#0284C7;
+  --r-lg:20px; --r-md:14px; --r-sm:8px;
+  --sh1:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.04);
+  --sh2:0 4px 6px -1px rgba(15,23,42,.08),0 16px 32px -4px rgba(15,23,42,.12);
+}
+html.rf{letter-spacing:.04em;word-spacing:.12em;line-height:1.75}
+html.hc{filter:contrast(1.25)}
+html.kid .touch-target{min-height:52px;min-width:52px}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:var(--font);font-size:16px;line-height:1.5;color:var(--ink);background:var(--bg);min-height:100dvh;touch-action:manipulation}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:1rem}
+.shell{max-width:1100px;margin:0 auto;padding:16px;padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(96px,env(safe-area-inset-bottom))}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--sur);border-radius:var(--r-lg);padding:20px;border:1px solid var(--line);box-shadow:var(--sh1);margin-bottom:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:var(--r-md);font-weight:700;font-size:.9rem;border:1px solid var(--line);background:var(--sur);color:var(--ink);transition:all .12s;user-select:none;white-space:nowrap}
+.btn:hover{background:var(--sur2);border-color:#CBD5E1}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;pointer-events:none}
+.btn-pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+.btn-pri:hover{background:#1E293B}
+.btn-acc{background:var(--acc);color:#fff;border-color:#D97706}
+.btn-acc:hover{background:#D97706}
+.btn-sm{min-height:38px;padding:0 12px;font-size:.8rem;border-radius:var(--r-sm)}
+.btn-icon{width:40px;height:40px;padding:0;flex:0 0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--sur);border-radius:var(--r-lg);padding:12px 16px;border:1px solid var(--line);box-shadow:var(--sh1);margin-bottom:14px;flex-wrap:wrap;position:sticky;top:8px;z-index:30;backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#F59E0B,#0EA5E9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;box-shadow:var(--sh1);flex-shrink:0}
+.brand-title{font-weight:900;font-size:1.15rem;letter-spacing:-.02em;line-height:1}
+.brand-sub{font-size:.7rem;color:var(--ink3);font-weight:600;margin-top:2px}
+.nav-tabs{display:flex;gap:4px;background:var(--sur2);padding:4px;border-radius:var(--r-md);margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{flex:1;min-height:44px;font-weight:700;font-size:.85rem;color:var(--ink2);border-radius:10px;padding:6px 12px;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.nav-tab.active{background:var(--sur);color:var(--ink);box-shadow:var(--sh1);transform:scale(1.02)}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.cal-title{font-size:1.35rem;font-weight:900;text-transform:capitalize;margin:0}
+.cal-nav{display:flex;align-items:center;gap:6px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-th{font-size:.7rem;font-weight:800;color:var(--ink3);text-align:center;padding:6px 0;text-transform:uppercase}
+.cal-day{min-height:64px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--sur2);padding:6px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:transform .1s,border-color .1s;text-align:left;font-family:inherit;position:relative;color:inherit}
+.cal-day:hover:not(:disabled){transform:scale(1.04);z-index:2;box-shadow:var(--sh1)}
+.cal-day.today{outline:3px solid var(--acc);outline-offset:2px}
+.cal-day.has{border-color:transparent}
+.cal-day:disabled{opacity:.4;cursor:not-allowed}
+.cal-day .num{font-weight:800;font-size:.85rem;line-height:1}
+.cal-day .icon{font-size:1.15rem;line-height:1;align-self:flex-end}
+.cal-day .temp{font-family:var(--mono);font-size:.8rem;font-weight:900;line-height:1}
+.cal-day .badge-sat{position:absolute;bottom:4px;right:4px;font-size:.6rem;background:rgba(0,0,0,.25);color:#fff;border-radius:4px;padding:1px 3px}
+.lab-split{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:820px){.lab-split{grid-template-columns:1fr 1.25fr}}
+.therm-box{display:flex;align-items:center;justify-content:center;gap:22px;padding:18px 0}
+.therm-stepper{display:flex;flex-direction:column;gap:8px}
+.therm-tube{width:32px;height:220px;background:#E2E8F0;border-radius:16px;padding:4px;display:flex;flex-direction:column;justify-content:flex-end;border:2px solid #CBD5E1;position:relative}
+.therm-mercury{width:100%;border-radius:12px;transition:height .3s cubic-bezier(.16,1,.3,1),background-color .3s}
+.therm-bulb{width:56px;height:56px;border-radius:50%;margin:-16px auto 0;border:2px solid #CBD5E1;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mono);font-weight:900;font-size:.85rem;transition:background-color .3s;text-shadow:0 1px 2px rgba(0,0,0,.15)}
+.compass-dial{width:170px;height:170px;border-radius:50%;border:4px solid var(--line);background:#F8FAFC;position:relative;margin:10px auto;box-shadow:inset 0 4px 12px rgba(15,23,42,.05)}
+.compass-vane{position:absolute;top:50%;left:50%;width:4px;height:80px;background:linear-gradient(to top,var(--sky),var(--acc));transform-origin:center center;margin-top:-40px;margin-left:-2px;transition:transform .5s cubic-bezier(.16,1,.3,1);border-radius:2px}
+.compass-vane::before{content:"";position:absolute;top:-9px;left:-6px;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:12px solid var(--acc)}
+.compass-dot{position:absolute;width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid var(--line);font-size:.65rem;font-weight:800;color:var(--ink2);display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%);transition:all .15s}
+.compass-dot.active{background:var(--sky);color:#fff;border-color:var(--sky);transform:translate(-50%,-50%) scale(1.15)}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:640px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{background:var(--sur);border-radius:var(--r-md);padding:14px;border:1px solid var(--line);box-shadow:var(--sh1)}
+.stat-label{font-size:.68rem;font-weight:800;color:var(--ink3);text-transform:uppercase;letter-spacing:.05em;display:block}
+.stat-val{font-size:1.5rem;font-weight:900;font-family:var(--mono);margin-top:4px;display:block;line-height:1.1}
+.stat-sub{font-size:.7rem;color:var(--ink2);margin-top:4px;display:block}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:.7rem;font-weight:700}
+.badge-card{padding:14px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--sur2);text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .2s;cursor:pointer}
+.badge-card.unlocked{background:linear-gradient(to bottom,#FEF3C7,#FFF7ED);border-color:#FCD34D;box-shadow:var(--sh1)}
+.badge-card.unlocked:hover{transform:scale(1.05)}
+.badge-card.locked{opacity:.55;filter:grayscale(1)}
+.badge-icon{font-size:2.2rem;line-height:1}
+.badge-name{font-size:.75rem;font-weight:900;line-height:1.15}
+.badge-desc{font-size:.62rem;color:var(--ink2);line-height:1.3}
+.badge-status{font-size:.58rem;font-weight:800;padding:2px 8px;border-radius:999px;text-transform:uppercase;letter-spacing:.04em}
+.quest-row{padding:14px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--sur2);display:flex;align-items:center;gap:12px;transition:all .15s}
+.quest-row.done{background:#ECFDF5;border-color:#A7F3D0}
+dialog{border:0;border-radius:24px;padding:0;max-width:560px;width:calc(100% - 20px);background:#fff;box-shadow:var(--sh2);max-height:92dvh;overflow:hidden}
+dialog::backdrop{background:rgba(15,23,42,.6);backdrop-filter:blur(4px)}
+.dlg-head{padding:18px 22px;border-bottom:1px solid var(--line);background:var(--sur2);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dlg-body{padding:20px 22px;overflow-y:auto;max-height:calc(92dvh - 130px)}
+.dlg-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;background:#FAFBFC}
+.field{margin-bottom:16px}
+.field-label{font-size:.75rem;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px}
+.field input,.field textarea{width:100%;padding:10px 14px;border-radius:var(--r-md);border:1px solid #CBD5E1;font-weight:600;transition:border-color .15s}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--acc)}
+.field textarea{resize:vertical;min-height:64px;font-size:.9rem}
+.temp-picker{display:flex;align-items:center;gap:10px}
+.temp-big{flex:1;height:60px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:1.6rem;font-weight:900;transition:background-color .3s;box-shadow:inset 0 2px 6px rgba(0,0,0,.1)}
+.chip-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.chip-grid.wide{grid-template-columns:repeat(auto-fill,minmax(90px,1fr))}
+.sky-chip{padding:8px 4px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--sur2);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.65rem;font-weight:700;transition:all .12s;text-align:center}
+.sky-chip.selected{background:var(--accS);border-color:var(--acc);transform:scale(1.04);box-shadow:var(--sh1)}
+.sky-chip .e{font-size:1.4rem}
+.modal-backdrop{position:fixed;inset:0;z-index:60;background:rgba(15,23,42,.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto}
+.modal-box{background:#fff;border-radius:24px;max-width:560px;width:100%;box-shadow:var(--sh2);max-height:92dvh;display:flex;flex-direction:column;overflow:hidden;animation:fadeUp .2s ease}
+.toast{position:fixed;bottom:calc(76px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;font-weight:700;font-size:.85rem;box-shadow:var(--sh2);z-index:100;animation:fadeUp .25s ease;max-width:90vw;text-align:center}
+.mobile-nav{position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px max(12px,env(safe-area-inset-left)) max(8px,env(safe-area-inset-bottom));display:flex;justify-content:space-around;box-shadow:0 -4px 12px rgba(15,23,42,.04)}
+.mobile-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:12px;font-size:.65rem;font-weight:700;color:var(--ink2);transition:all .12s;max-width:100px}
+.mobile-nav-btn.active{color:var(--acc)}
+.mobile-nav-btn svg{width:22px;height:22px}
+@media(min-width:768px){.mobile-nav{display:none}.shell{padding-bottom:24px}}
+.print-report{display:none}
+@media print{
+  @page{margin:10mm;size:portrait}
+  body{background:#fff !important;color:#000 !important}
+  .no-print{display:none !important}
+  .print-report{display:block !important}
+  .shell{padding:0 !important}
+  .tab-pane{display:none !important}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar no-print" id="topbar"></header>
+  <nav class="nav-tabs no-print" id="navTabs"></nav>
+  <main id="main"></main>
+</div>
+<nav class="mobile-nav no-print" id="mobileNav"></nav>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+<div class="print-report" id="printReport"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   МЕТЕОЩОДЕННИК — САМОДОСТАТНІЙ ДВИГУН v7
+   Все в одному файлі: без залежностей, працює офлайн, PWA-ready.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─────────────── 1. i18n ─────────────── */
+const TR = {
+  uk:{
+    appName:'Метеощоденник',tagline:'Дитяча метеолабораторія та щоденник погоди',forKids:'Для юних дослідників 7–10 років',
+    navCal:'Календар',navLab:'Метеолабораторія',navQuests:'Квести й бейджі',navStats:'Графіки та звіт',
+    today:'Сьогодні',prev:'Попередній',next:'Наступний',addRec:'Записати погоду',compare:'Супутник Open-Meteo',comparing:'Зв\'язок із супутником...',
+    save:'Зберегти запис',saved:'Чудово! Запис збережено!',del:'Видалити запис',cancel:'Скасувати',close:'Закрити',confirm:'Підтвердити',
+    export:'Зберегти файл',import:'Відкрити файл',print:'Друк / Шкільний звіт',changeCity:'Змінити місто',search:'Знайти',
+    detectLoc:'📍 Визначити моє місто',install:'📲 Встановити на екран',settings:'Налаштування',
+    labTitle:'Інтерактивна метеолабораторія',labSub:'Досліджуй, як змінюється погода навколо тебе',
+    thermometer:'Рідинний термометр',thermHint:'Тисни ▲▼ або тягни бігунок, щоб відчути тепло чи мороз!',
+    whatToWear:'Що сьогодні одягнути?',funFact:'Цікавий факт про природу',windCompass:'Флюгер та компас вітру',
+    windHint:'Звідки дме вітерець?',skyState:'Стан неба',howAreYou:'Твій настрій сьогодні',
+    skyClear:'Ясно, сонячно',skyPartly:'Мінлива хмарність',skyCloudy:'Хмарно',skyRain:'Дощ',skyStorm:'Гроза з блискавкою',skySnow:'Снігопад',skyFog:'Густий туман',
+    moodJoy:'Радісний',moodOk:'Спокійний',moodSad:'Сумний',moodWow:'У захваті!',moodSleepy:'Сонний',
+    dirNorth:'Пн',dirNE:'ПнСх',dirEast:'Сх',dirSE:'ПдСх',dirSouth:'Пд',dirSW:'ПдЗх',dirWest:'Зх',dirNW:'ПнЗх',dirCalm:'Штиль (вітру немає)',
+    fTemp:'Температура повітря',fTime:'Час спостереження',fHum:'Вологість повітря',fWind:'Швидкість вітру',fWindDir:'Напрям вітру',
+    fNotes:'Нотатки юного вченого',fNotesPH:'Наприклад: бачив веселку, калюжі замерзли...',
+    cmpTitle:'Порівняння з моделлю Open-Meteo',cmpYou:'Твоє спостереження',cmpSat:'Open-Meteo',cmpDiff:'Різниця',
+    questsTitle:'Метеоквести та нагороди',questsSub:'Виконуй завдання, заробляй зірочки та ставай головним синоптиком!',
+    level:'Рівень дослідника',xp:'Очок досвіду',
+    lvl1:'Юний спостерігач',lvl2:'Слідопит погоди',lvl3:'Майстер циклонів',lvl4:'Професор атмосфери',
+    badgeFirst:'Перший запис',badgeFirstD:'Зроби свій найперший науковий запис!',
+    badgeWeek:'Тижневий марафон',badgeWeekD:'Запиши погоду 7 різних днів!',
+    badgeMonth:'Місячний архів',badgeMonthD:'Збери 20 записів за місяць!',
+    badgeRain:'Мисливець за дощем',badgeRainD:'Зафіксуй день з дощем або грозою!',
+    badgeWind:'Повелитель вітрів',badgeWindD:'Визнач швидкість та напрямок вітру!',
+    badgeSat:'Друг суперкомп\'ютера',badgeSatD:'Порівняй дані з супутником Open-Meteo!',
+    setTitle:'Налаштування',setKid:'Дитячий спрощений режим',setKidH:'Великі кнопки, прості слова, підказки.',
+    setUnits:'Одиниці вимірювання',setMetric:'°C, м/с',setImperial:'°F, mph',
+    setSound:'Звукові ефекти та мелодії',setA11y:'Доступність',setContrast:'Підвищений контраст',
+    setRead:'Шрифт для зручного читання',setWipe:'Очистити всі дані',setWipeC:'Справді видалити всі записи?',
+    privacy:'🔒 100% Безпека: всі записи зберігаються лише в браузері. Без реклами, без стеження.',
+    onbWelcome:'Ласкаво просимо! 🌤️',onbStep1:'Як тебе звати, юний синоптику?',onbNamePH:'Наприклад: Данилко',
+    onbClassPH:'Клас (наприклад, 3-Б)',onbStep2:'Обери свого метеодруга:',onbStep3:'Де твоя метеостанція?',
+    onbCityPH:'Введи місто (Львів, Одеса...)',onbStart:'Розпочати! 🚀',nextBtn:'Далі',
+    cityPick:'Місце спостережень',citySearchPH:'Введи місто або село...',cityNone:'Нічого не знайдено.',
+    profileTitle:'Профілі учнів',profileSub:'Кожен учень може вести свій щоденник.',addStudent:'Додати учня',
+    active:'Активний',choose:'Обрати',recCount:'спостережень',newProfile:'Створення нового щоденника',
+    nameField:'Ім\'я',classField:'Клас',avatarField:'Обери метео-аватар',saveProfile:'Зберегти профіль',
+    confirmDel:'Видалити щоденник?',confirmDelRec:'Справді видалити цей запис?',
+    statAvg:'Середня t°',statMax:'Найтепліше',statMin:'Найхолодніше',statWet:'Днів з опадами',
+    chartTitle:'Графік зміни температури',chartSub:'Твої спостереження (темна) та супутник (пунктир)',
+    chartLegendYou:'Ти',chartLegendSat:'Open-Meteo',chartEmpty:'Ще немає записів цього місяця.',
+    windRose:'Роза вітрів',windRoseSub:'Показує переважаючі напрямки',windRoseHint:'Чим довша пелюстка — тим частіше дув вітер.',
+    tableTitle:'Таблиця наукових спостережень',tableShow:'Показати всі дані ▼',tableHide:'Згорнути ▲',
+    tDate:'Дата',tTime:'Час',tTemp:'Температура',tSky:'Небо',tHum:'Вологість',tWind:'Вітер',tSat:'Супутник',tNotes:'Нотатки',
+    months:['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'],
+    weekdays:['Пн','Вт','Ср','Чт','Пт','Сб','Нд'],
+    fact0:'Найвища температура на Землі +56.7°C у Долині Смерті.',
+    fact1:'Сніжинки завжди мають 6 промінців!',
+    fact2:'Блискавка в 5 разів гарячіша за поверхню Сонця!',
+    fact3:'Пухнаста хмара важить близько 500 тонн — як 100 слонів!',
+    fact4:'Швидкість вітру вимірюють анемометром.',
+    fact5:'Після дощу пахне геосміном, який виділяють ґрунтові бактерії.',
+    clothesFreeze:'❄️ Дуже холодно! Теплий пуховик, шапка, шарф, рукавички.',
+    clothesCold:'🧣 Прохолодно! Зимова куртка, шапка й шарфик.',
+    clothesMild:'🧥 Свіже повітря! Демісезонна куртка та джинси.',
+    clothesWarm:'👕 Приємне тепло! Легка кофта або футболка.',
+    clothesHot:'🧢 Спекотно! Футболка, шорти, панамка. Пий водичку!',
+    clothesRainAdd:'☔ Візьми парасольку або дощовик!',
+    clothesWindAdd:'🪁 Сильний вітер! Застебни куртку.',
+    printerTitle:'Шкільний щоденник погоди',printerSub:'Аркуш метеорологічних спостережень',
+    printerStudent:'Учень',printerClass:'Клас',printerCity:'Місто',printerMonth:'Місяць',
+    printerSign:'Підпис вчителя',printerGrade:'Оцінка',printerDate:'Дата перевірки',
+    langName:'Українська'
+  },
+  en:{
+    appName:'Weather Journal',tagline:'Kids Weather Lab & Observation Journal',forKids:'For young scientists aged 7–10',
+    navCal:'Calendar',navLab:'Weather Lab',navQuests:'Quests & Badges',navStats:'Charts & Stats',
+    today:'Today',prev:'Previous',next:'Next',addRec:'Log Weather',compare:'Open-Meteo Satellite',comparing:'Connecting...',
+    save:'Save Entry',saved:'Entry saved!',del:'Delete',cancel:'Cancel',close:'Close',confirm:'Confirm',
+    export:'Export File',import:'Import File',print:'Print / Report',changeCity:'Change City',search:'Search',
+    detectLoc:'📍 Detect My City',install:'📲 Add to Home',settings:'Settings',
+    labTitle:'Interactive Weather Lab',labSub:'Explore how weather works around you',
+    thermometer:'Liquid Thermometer',thermHint:'Tap ▲▼ or drag the slider!',
+    whatToWear:'What to Wear Today?',funFact:'Fun Nature Fact',windCompass:'Wind Vane & Compass',
+    windHint:'Where is the wind blowing from?',skyState:'Sky Condition',howAreYou:'Your Mood Today',
+    skyClear:'Clear',skyPartly:'Partly Cloudy',skyCloudy:'Cloudy',skyRain:'Rain',skyStorm:'Thunderstorm',skySnow:'Snow',skyFog:'Fog',
+    moodJoy:'Happy',moodOk:'Calm',moodSad:'Sad',moodWow:'Excited!',moodSleepy:'Sleepy',
+    dirNorth:'N',dirNE:'NE',dirEast:'E',dirSE:'SE',dirSouth:'S',dirSW:'SW',dirWest:'W',dirNW:'NW',dirCalm:'Calm (no wind)',
+    fTemp:'Air Temperature',fTime:'Observation Time',fHum:'Humidity',fWind:'Wind Speed',fWindDir:'Wind Direction',
+    fNotes:'Young Scientist Notes',fNotesPH:'E.g.: saw a rainbow, puddles froze...',
+    cmpTitle:'Comparison with Open-Meteo',cmpYou:'Your Observation',cmpSat:'Open-Meteo',cmpDiff:'Difference',
+    questsTitle:'Quests & Achievements',questsSub:'Complete challenges and become the Chief Meteorologist!',
+    level:'Explorer Level',xp:'Experience',
+    lvl1:'Junior Observer',lvl2:'Weather Scout',lvl3:'Cyclone Master',lvl4:'Atmosphere Professor',
+    badgeFirst:'First Step',badgeFirstD:'Make your first weather log!',
+    badgeWeek:'Week Marathon',badgeWeekD:'Record 7 different days!',
+    badgeMonth:'Monthly Archive',badgeMonthD:'Collect 20 entries!',
+    badgeRain:'Rain Hunter',badgeRainD:'Capture a rainy or stormy day!',
+    badgeWind:'Wind Whisperer',badgeWindD:'Determine wind speed & direction!',
+    badgeSat:'Satellite Ally',badgeSatD:'Compare with Open-Meteo model!',
+    setTitle:'Settings',setKid:'Kid-Friendly Mode',setKidH:'Larger buttons, easier words.',
+    setUnits:'Units',setMetric:'°C, m/s',setImperial:'°F, mph',
+    setSound:'Sound Effects',setA11y:'Accessibility',setContrast:'High Contrast',
+    setRead:'Dyslexia-friendly spacing',setWipe:'Reset All Data',setWipeC:'Really delete all data?',
+    privacy:'🔒 100% Privacy: all logs stay in your browser. No ads, no tracking.',
+    onbWelcome:'Welcome! 🌤️',onbStep1:'What is your name?',onbNamePH:'E.g., Alex',
+    onbClassPH:'Class (e.g., 3rd grade)',onbStep2:'Choose your weather buddy:',onbStep3:'Where is your weather station?',
+    onbCityPH:'Enter city (London, Kyiv...)',onbStart:'Launch! 🚀',nextBtn:'Next',
+    cityPick:'Weather Station Location',citySearchPH:'Enter city or town...',cityNone:'Nothing found.',
+    profileTitle:'Student Profiles',profileSub:'Each student can keep their own journal.',addStudent:'Add Student',
+    active:'Active',choose:'Choose',recCount:'records',newProfile:'Create new journal',
+    nameField:'Name',classField:'Class',avatarField:'Choose avatar',saveProfile:'Save Profile',
+    confirmDel:'Delete journal?',confirmDelRec:'Really delete this entry?',
+    statAvg:'Avg temp',statMax:'Warmest',statMin:'Coldest',statWet:'Wet days',
+    chartTitle:'Temperature Chart',chartSub:'Your logs (dark) vs satellite (dashed)',
+    chartLegendYou:'You',chartLegendSat:'Open-Meteo',chartEmpty:'No entries this month.',
+    windRose:'Wind Rose',windRoseSub:'Prevailing wind directions',windRoseHint:'Longer petal = more frequent wind.',
+    tableTitle:'Scientific Observation Table',tableShow:'Show all data ▼',tableHide:'Collapse ▲',
+    tDate:'Date',tTime:'Time',tTemp:'Temp',tSky:'Sky',tHum:'Humidity',tWind:'Wind',tSat:'Satellite',tNotes:'Notes',
+    months:['January','February','March','April','May','June','July','August','September','October','November','December'],
+    weekdays:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    fact0:'The hottest temperature on Earth was +56.7°C in Death Valley.',
+    fact1:'Snowflakes always have 6 branches!',
+    fact2:'Lightning is 5x hotter than the Sun\'s surface!',
+    fact3:'A fluffy cumulus cloud weighs ~500 tons!',
+    fact4:'Wind speed is measured with an anemometer.',
+    fact5:'The smell after rain is called petrichor.',
+    clothesFreeze:'❄️ Freezing! Heavy coat, hat, scarf, gloves.',
+    clothesCold:'🧣 Chilly! Winter jacket, hat, scarf.',
+    clothesMild:'🧥 Fresh air! Light jacket & jeans.',
+    clothesWarm:'👕 Nice and mild! Light shirt or tee.',
+    clothesHot:'🧢 Hot! T-shirt, shorts, sunhat. Stay hydrated!',
+    clothesRainAdd:'☔ Bring an umbrella or raincoat!',
+    clothesWindAdd:'🪁 Windy! Zip up your jacket.',
+    printerTitle:'School Weather Journal',printerSub:'Meteorological Observations Sheet',
+    printerStudent:'Student',printerClass:'Class',printerCity:'City',printerMonth:'Month',
+    printerSign:'Teacher signature',printerGrade:'Grade',printerDate:'Date',
+    langName:'English'
+  }
+};
+const LANGS = ['uk','en'];
+function t(k){const L=TR[S.lang]||TR.uk;return L[k]!==undefined?L[k]:(TR.uk[k]!==undefined?TR.uk[k]:(TR.en[k]!==undefined?TR.en[k]:k));}
+
+/* ─────────────── 2. Константи ─────────────── */
+const STORAGE_KEY = 'meteojournal.v7';
+const AVATARS = ['🦊','🐱','🐼','🦄','🚀','🌈','🦉','🐢','🌻','🐧','🦋','🐶'];
+const SKIES = [
+  {k:'clear',e:'☀️',key:'skyClear'},{k:'partly',e:'🌤️',key:'skyPartly'},{k:'cloudy',e:'☁️',key:'skyCloudy'},
+  {k:'rain',e:'🌧️',key:'skyRain'},{k:'storm',e:'⛈️',key:'skyStorm'},{k:'snow',e:'❄️',key:'skySnow'},{k:'fog',e:'🌫️',key:'skyFog'}
+];
+const MOODS = [
+  {k:'joy',e:'😀',key:'moodJoy'},{k:'ok',e:'😐',key:'moodOk'},{k:'sad',e:'😢',key:'moodSad'},
+  {k:'wow',e:'🤩',key:'moodWow'},{k:'sleepy',e:'😴',key:'moodSleepy'}
+];
+const DIR_KEYS = ['dirNorth','dirNE','dirEast','dirSE','dirSouth','dirSW','dirWest','dirNW'];
+const DIR_ANGLES = [180,225,270,315,0,45,90,135]; // compass deg for arrow pointing FROM direction
+const DEFAULT_CITY = {name:'Київ',admin:'Київська область',country:'Україна',lat:50.45,lon:30.52,tz:'Europe/Kyiv'};
+const BADGES = [
+  {id:'first',icon:'🌱',titleK:'badgeFirst',descK:'badgeFirstD',check:s=>recCount()>=1},
+  {id:'week',icon:'⭐',titleK:'badgeWeek',descK:'badgeWeekD',check:s=>recCount()>=7},
+  {id:'month',icon:'👑',titleK:'badgeMonth',descK:'badgeMonthD',check:s=>recCount()>=20},
+  {id:'rain',icon:'🌧️',titleK:'badgeRain',descK:'badgeRainD',check:s=>Object.values(records()).some(r=>r.sky==='rain'||r.sky==='storm')},
+  {id:'wind',icon:'🪁',titleK:'badgeWind',descK:'badgeWindD',check:s=>Object.values(records()).some(r=>r.wind!=null&&r.dir!=null)},
+  {id:'sat',icon:'🛰️',titleK:'badgeSat',descK:'badgeSatD',check:s=>Object.values(records()).some(r=>r.real)}
+];
+const QUESTS = [
+  {id:'first',icon:'🌱',titleK:'badgeFirst',descK:'badgeFirstD',xp:50,check:s=>recCount()>=1},
+  {id:'rain',icon:'🌧️',titleK:'badgeRain',descK:'badgeRainD',xp:100,check:s=>Object.values(records()).some(r=>r.sky==='rain'||r.sky==='storm')},
+  {id:'wind',icon:'🪁',titleK:'badgeWind',descK:'badgeWindD',xp:80,check:s=>Object.values(records()).some(r=>r.wind!=null&&r.dir!=null)},
+  {id:'week',icon:'⭐',titleK:'badgeWeek',descK:'badgeWeekD',xp:150,check:s=>recCount()>=7},
+  {id:'sat',icon:'🛰️',titleK:'badgeSat',descK:'badgeSatD',xp:120,check:s=>Object.values(records()).some(r=>r.real)}
+];
+
+/* ─────────────── 3. Стан ─────────────── */
+let S = null;
+function defaultStore(){
+  const pid='p_'+Date.now().toString(36);
+  return {
+    v:7,lang:'uk',units:'metric',kidMode:true,soundEnabled:true,
+    a11y:{hc:false,large:false,readable:false},
+    onboarded:false,active:pid,
+    profiles:[{id:pid,name:'Юний синоптик',cls:'3-А',avatar:AVATARS[0],city:{...DEFAULT_CITY},records:{},xp:0}]
+  };
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(raw){const p=JSON.parse(raw);
+      if(p&&Array.isArray(p.profiles)&&p.profiles.length){
+        const def=defaultStore();
+        S={...def,...p};
+        if(!S.profiles.some(x=>x.id===S.active))S.active=S.profiles[0].id;
+        return;
+      }
+    }
+  }catch(e){console.warn('load fail',e);}
+  S=defaultStore();
+}
+function save(){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(S));}catch(e){console.warn('save fail',e);}
+}
+function profile(){return S.profiles.find(p=>p.id===S.active)||S.profiles[0];}
+function records(){return profile().records||{};}
+function recCount(){return Object.keys(records()).length;}
+
+/* ─────────────── 4. Звук (Web Audio) ─────────────── */
+let actx=null;
+function ensureCtx(){
+  if(typeof window==='undefined')return null;
+  if(!actx){const A=window.AudioContext||window.webkitAudioContext;if(A)actx=new A();}
+  if(actx&&actx.state==='suspended')actx.resume().catch(()=>{});
+  return actx;
+}
+function playTap(){if(!S.soundEnabled)return;const c=ensureCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(440,c.currentTime);o.frequency.exponentialRampToValueAtTime(880,c.currentTime+.04);g.gain.setValueAtTime(.08,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.04);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.04);}catch(e){}}
+function playStep(up){if(!S.soundEnabled)return;const c=ensureCtx();if(!c)return;try{const o=c.createOscillator(),g=c.createGain();o.type='triangle';const f=up?520:380;o.frequency.setValueAtTime(f,c.currentTime);o.frequency.exponentialRampToValueAtTime(up?640:300,c.currentTime+.06);g.gain.setValueAtTime(.09,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.06);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.06);}catch(e){}}
+function playSuccess(){if(!S.soundEnabled)return;const c=ensureCtx();if(!c)return;[523.25,659.25,783.99,1046.5].forEach((f,i)=>{try{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(f,c.currentTime+i*.07);g.gain.setValueAtTime(.07,c.currentTime+i*.07);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.07+.18);o.connect(g);g.connect(c.destination);o.start(c.currentTime+i*.07);o.stop(c.currentTime+i*.07+.18);}catch(e){}});}
+function playFanfare(){if(!S.soundEnabled)return;const c=ensureCtx();if(!c)return;[{f:523.25,t:0,d:.12},{f:659.25,t:.12,d:.12},{f:783.99,t:.24,d:.14},{f:1046.5,t:.38,d:.35}].forEach(n=>{try{const o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(n.f,c.currentTime+n.t);g.gain.setValueAtTime(.12,c.currentTime+n.t);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+n.t+n.d);o.connect(g);g.connect(c.destination);o.start(c.currentTime+n.t);o.stop(c.currentTime+n.t+n.d);}catch(e){}});}
+
+/* ─────────────── 5. Утиліти ─────────────── */
+function todayKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function daysInMonth(y,m){return new Date(y,m+1,0).getDate();}
+function toDispTemp(c,units){return units==='imperial'?Math.round((c*9/5+32)*10)/10:Math.round(c*10)/10;}
+function fromDispTemp(v,units){return units==='imperial'?Math.round(((v-32)*5/9)*10)/10:Math.round(v*10)/10;}
+function toDispWind(ms,units){return units==='imperial'?Math.round(ms*2.23694*10)/10:Math.round(ms*10)/10;}
+function fromDispWind(v,units){return units==='imperial'?Math.round(v/2.23694*10)/10:Math.round(v*10)/10;}
+function fmtTemp(c,units){const v=toDispTemp(c,units);return (v>0?'+':'')+v+'°'+(units==='imperial'?'F':'C');}
+function fmtWind(ms,units){return toDispWind(ms,units)+' '+(units==='imperial'?'mph':'м/с');}
+const TGRAD=[[-25,[30,64,175]],[-15,[59,130,246]],[-5,[147,197,253]],[0,[186,230,253]],[8,[167,243,208]],[16,[253,224,71]],[22,[251,146,60]],[28,[239,68,68]],[36,[185,28,28]]];
+function tempColor(c){
+  if(c<=TGRAD[0][0]){const r=TGRAD[0][1];return `rgb(${r[0]},${r[1]},${r[2]})`;}
+  if(c>=TGRAD[TGRAD.length-1][0]){const r=TGRAD[TGRAD.length-1][1];return `rgb(${r[0]},${r[1]},${r[2]})`;}
+  for(let i=1;i<TGRAD.length;i++){
+    const [c1,rgb1]=TGRAD[i];
+    if(c<=c1){const [c0,rgb0]=TGRAD[i-1];const r=(c-c0)/(c1-c0);
+      return `rgb(${Math.round(rgb0[0]+(rgb1[0]-rgb0[0])*r)},${Math.round(rgb0[1]+(rgb1[1]-rgb0[1])*r)},${Math.round(rgb0[2]+(rgb1[2]-rgb0[2])*r)})`;}
+  }
+  return '#3B82F6';
+}
+function contrastText(c){return (c<-5||c>26)?'#fff':'#0f172a';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function skyObj(k){return SKIES.find(x=>x.k===k)||SKIES[0];}
+
+/* ─────────────── 6. Конфеті (canvas) ─────────────── */
+function confetti(){
+  try{
+    const cvs=document.createElement('canvas');
+    cvs.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:999;';
+    cvs.width=innerWidth;cvs.height=innerHeight;
+    document.body.appendChild(cvs);
+    const ctx=cvs.getContext('2d');
+    const parts=[];const colors=['#F59E0B','#10B981','#3B82F6','#EC4899','#8B5CF6','#EF4444'];
+    for(let i=0;i<70;i++)parts.push({x:innerWidth/2+(Math.random()-.5)*180,y:innerHeight*.6,vx:(Math.random()-.5)*10,vy:-Math.random()*12-4,g:.35,sz:4+Math.random()*6,c:colors[i%colors.length],r:Math.random()*Math.PI,rv:(Math.random()-.5)*.3,life:0});
+    let frames=0;
+    const tick=()=>{
+      frames++;ctx.clearRect(0,0,cvs.width,cvs.height);
+      parts.forEach(p=>{p.life++;p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.rv;
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.sz/2,-p.sz/2,p.sz,p.sz*.6);ctx.restore();});
+      if(frames<90)requestAnimationFrame(tick);else cvs.remove();
+    };tick();
+  }catch(e){}
+}
+
+/* ─────────────── 7. Toast ─────────────── */
+let toastTO;
+function toast(msg,ms=2500){
+  const root=document.getElementById('toastRoot');
+  root.innerHTML='';
+  const el=document.createElement('div');el.className='toast';el.textContent=msg;root.appendChild(el);
+  clearTimeout(toastTO);toastTO=setTimeout(()=>root.innerHTML='',ms);
+}
+
+/* ─────────────── 8. Квест/бейдж розрахунки ─────────────── */
+function totalXp(){
+  let xp=recCount()*15;
+  QUESTS.forEach(q=>{if(q.check(S))xp+=q.xp;});
+  return xp;
+}
+function level(){return Math.floor(totalXp()/150)+1;}
+function lvlTitle(l){return t(['lvl1','lvl2','lvl3','lvl4'][Math.min(4,l)-1]);}
+
+/* ─────────────── 9. Open-Meteo API ─────────────── */
+function weatherCodeToSky(code){
+  if(code===0)return 'clear';
+  if(code===1||code===2)return 'partly';
+  if(code===3)return 'cloudy';
+  if(code>=51&&code<=67)return 'rain';
+  if(code>=71&&code<=77)return 'snow';
+  if(code>=95)return 'storm';
+  if(code===45||code===48)return 'fog';
+  return 'partly';
+}
+async function fetchOpenMeteo(city,dateKeys){
+  if(city.lat==null||city.lon==null||!dateKeys.length)return {};
+  const sorted=[...dateKeys].sort();
+  const params=new URLSearchParams({latitude:city.lat.toFixed(2),longitude:city.lon.toFixed(2),
+    hourly:'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m',
+    wind_speed_unit:'ms',timezone:'auto',start_date:sorted[0],end_date:sorted[sorted.length-1]});
+  const urls=[`https://api.open-meteo.com/v1/forecast?${params}`,`https://archive-api.open-meteo.com/v1/archive?${params}`];
+  let data=null;
+  for(const u of urls){try{const r=await fetch(u);if(r.ok){data=await r.json();if(data&&data.hourly)break;}}catch(e){}}
+  if(!data||!data.hourly||!Array.isArray(data.hourly.time))return {};
+  const out={};const h=data.hourly;
+  h.time.forEach((timeStr,i)=>{
+    const [datePart,hourPart]=timeStr.split('T');
+    if(hourPart==='12:00'||(!out[datePart]&&hourPart==='09:00')){
+      const deg=h.wind_direction_10m[i];
+      const dir=Math.round((((deg%360)+360)%360)/45)%8;
+      out[datePart]={temp:Math.round(h.temperature_2m[i]*10)/10,hum:Math.round(h.relative_humidity_2m[i]),
+        wind:Math.round(h.wind_speed_10m[i]*10)/10,dir,sky:weatherCodeToSky(h.weather_code[i]),at:new Date().toISOString()};
+    }
+  });
+  return out;
+}
+async function searchCities(query,lang){
+  if(!query||query.trim().length<2)return [];
+  try{
+    const p=new URLSearchParams({name:query.trim(),count:'8',language:lang,format:'json'});
+    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?${p}`);
+    if(!r.ok)return [];
+    const d=await r.json();
+    if(!d.results)return [];
+    return d.results.map(x=>({name:x.name,admin:x.admin1||'',country:x.country||'',lat:Math.round(x.latitude*100)/100,lon:Math.round(x.longitude*100)/100,tz:x.timezone||null}));
+  }catch(e){return [];}
+}
+async function reverseGeo(lat,lon,lang){
+  try{
+    const p=new URLSearchParams({lat:(Math.round(lat*100)/100).toString(),lon:(Math.round(lon*100)/100).toString(),format:'json',zoom:'10','accept-language':lang});
+    const r=await fetch(`https://nominatim.openstreetmap.org/reverse?${p}`);
+    if(!r.ok)return null;
+    const d=await r.json();const a=d.address||{};
+    return {name:a.city||a.town||a.village||a.municipality||a.state||'Моє місто',admin:a.state||a.county||'',country:a.country||'',lat:Math.round(lat*100)/100,lon:Math.round(lon*100)/100};
+  }catch(e){return null;}
+}
+
+/* ─────────────── 10. Render: Topbar ─────────────── */
+let activeTab='cal';
+function renderTopbar(){
+  const el=document.getElementById('topbar');
+  const p=profile();
+  el.innerHTML=`
+    <div class="brand">
+      <div class="brand-icon">🌤️</div>
+      <div>
+        <div class="brand-title">${esc(t('appName'))}</div>
+        <div class="brand-sub">${esc(t('forKids'))}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+      <button class="btn btn-sm" id="btnCity" title="${esc(t('changeCity'))}">📍 ${esc(p.city.name)}</button>
+      <button class="btn btn-sm btn-icon" id="btnSound" title="${esc(t('setSound'))}">${S.soundEnabled?'🔔':'🔕'}</button>
+      <div style="display:inline-flex;background:var(--sur2);border-radius:8px;padding:2px;font-size:.7rem;font-weight:800;">
+        ${LANGS.map(l=>`<button data-lang="${l}" style="padding:5px 8px;border-radius:6px;text-transform:uppercase;${S.lang===l?'background:#fff;box-shadow:var(--sh1);':''}">${l}</button>`).join('')}
+      </div>
+      <button class="btn btn-sm" id="btnProfile">${esc(p.avatar)} ${esc(p.name)}</button>
+      <button class="btn btn-sm btn-icon" id="btnSettings" title="${esc(t('settings'))}">⚙️</button>
+    </div>`;
+  el.querySelector('#btnCity').onclick=()=>{playTap();openCityModal();};
+  el.querySelector('#btnSound').onclick=()=>{S.soundEnabled=!S.soundEnabled;save();playTap();renderTopbar();};
+  el.querySelectorAll('[data-lang]').forEach(b=>b.onclick=()=>{playTap();S.lang=b.dataset.lang;save();render();});
+  el.querySelector('#btnProfile').onclick=()=>{playTap();openProfileModal();};
+  el.querySelector('#btnSettings').onclick=()=>{playTap();openSettingsModal();};
+}
+
+/* ─────────────── 11. Render: Nav ─────────────── */
+function renderNav(){
+  const items=[
+    {id:'cal',icon:'📅',label:t('navCal')},
+    {id:'lab',icon:'✨',label:t('navLab')},
+    {id:'quests',icon:'⭐',label:t('navQuests')},
+    {id:'stats',icon:'📊',label:t('navStats')}
+  ];
+  document.getElementById('navTabs').innerHTML=items.map(i=>
+    `<button class="nav-tab ${activeTab===i.id?'active':''}" data-tab="${i.id}">${i.icon} ${esc(i.label)}</button>`
+  ).join('');
+  document.querySelectorAll('#navTabs .nav-tab').forEach(b=>b.onclick=()=>{playTap();activeTab=b.dataset.tab;render();});
+  document.getElementById('mobileNav').innerHTML=items.map(i=>
+    `<button class="mobile-nav-btn ${activeTab===i.id?'active':''}" data-tab="${i.id}">
+      <span style="font-size:1.3rem;line-height:1">${i.icon}</span>
+      <span>${esc(i.label.split(' ')[0])}</span>
+    </button>`
+  ).join('');
+  document.querySelectorAll('#mobileNav .mobile-nav-btn').forEach(b=>b.onclick=()=>{playTap();activeTab=b.dataset.tab;render();});
+}
+
+/* ─────────────── 12. Render: Main ─────────────── */
+let viewY=new Date().getFullYear(),viewM=new Date().getMonth();
+function render(){
+  document.documentElement.classList.toggle('kid',S.kidMode);
+  document.documentElement.classList.toggle('hc',S.a11y.hc);
+  document.documentElement.classList.toggle('rf',S.a11y.readable);
+  renderTopbar();
+  renderNav();
+  const m=document.getElementById('main');
+  if(activeTab==='cal')m.innerHTML=viewCalendar();
+  else if(activeTab==='lab')m.innerHTML=viewLab();
+  else if(activeTab==='quests')m.innerHTML=viewQuests();
+  else if(activeTab==='stats')m.innerHTML=viewStats();
+  bindView();
+}
+
+/* ─────────────── 13. View: Calendar ─────────────── */
+function viewCalendar(){
+  const p=profile();
+  const tk=todayKey();
+  const monthTitle=t('months')[viewM]+' '+viewY;
+  const startDow=(new Date(viewY,viewM,1).getDay()+6)%7; // Mon=0
+  const dim=daysInMonth(viewY,viewM);
+  let cells='';
+  for(let i=0;i<startDow;i++)cells+='<div></div>';
+  let monthRecs=0;
+  for(let d=1;d<=dim;d++){
+    const key=dateKey(viewY,viewM,d);
+    const rec=p.records[key];
+    const isToday=key===tk;
+    const isFuture=key>tk;
+    if(rec)monthRecs++;
+    let style='',textColor='';
+    if(rec){style=`background:${tempColor(rec.temp)};color:${contrastText(rec.temp)}`;textColor=contrastText(rec.temp);}
+    const so=rec?skyObj(rec.sky):null;
+    cells+=`
+      <button class="cal-day ${isToday?'today':''} ${rec?'has':''}" data-day="${key}" ${isFuture?'disabled':''} style="${style}">
+        <div class="num" style="color:${rec?textColor:(isToday?'#D97706':'#475569')}">${d}</div>
+        ${so?`<div class="icon" title="${esc(t(so.key))}">${so.e}</div>`:''}
+        ${rec?`<div class="temp" style="color:${textColor}">${toDispTemp(rec.temp,S.units)>0?'+':''}${toDispTemp(rec.temp,S.units)}°</div>`:''}
+        ${rec&&rec.real?'<span class="badge-sat">🛰️</span>':''}
+      </button>`;
+  }
+  return `
+    <div class="card">
+      <div class="cal-head">
+        <div class="cal-nav">
+          <button class="btn btn-sm btn-icon" data-nav="-1">←</button>
+          <h2 class="cal-title">${esc(monthTitle)}</h2>
+          <button class="btn btn-sm btn-icon" data-nav="1">→</button>
+          <button class="btn btn-sm" id="btnToday">${esc(t('today'))}</button>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-acc" id="btnCompare" ${monthRecs===0?'disabled':''}>🛰️ ${esc(t('compare'))}</button>
+          <button class="btn btn-sm btn-pri" id="btnAdd">+ ${esc(t('addRec'))}</button>
+          <button class="btn btn-sm btn-icon" id="btnPrint" title="${esc(t('print'))}">🖨️</button>
+          <button class="btn btn-sm btn-icon" id="btnExport" title="${esc(t('export'))}">⬇️</button>
+          <button class="btn btn-sm btn-icon" id="btnImport" title="${esc(t('import'))}">⬆️</button>
+        </div>
+      </div>
+      <div class="cal-grid">
+        ${t('weekdays').map(d=>`<div class="cal-th">${esc(d)}</div>`).join('')}
+        ${cells}
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:.75rem;font-weight:700;color:var(--ink2);">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span>Шкала:</span>
+          <div style="width:200px;height:10px;border-radius:999px;background:linear-gradient(to right,#1E40AF,#3B82F6,#93C5FD,#BAE6FD,#A7F3D0,#FDE047,#FB923C,#EF4444,#B91C1C);"></div>
+          <span style="font-family:var(--mono);color:var(--ink3);">-25° · 0° · +35°</span>
+        </div>
+        <div>Записів: <strong style="color:var(--ink)">${monthRecs}</strong> / ${dim}</div>
+      </div>
+    </div>`;
+}
+
+/* ─────────────── 14. View: Lab ─────────────── */
+let lab={temp:20,sky:'clear',wind:3,dir:4,fact:0,saved:false};
+function viewLab(){
+  const p=profile();
+  const dispT=toDispTemp(lab.temp,S.units);
+  const perc=Math.min(100,Math.max(5,((lab.temp+30)/75)*100));
+  const col=tempColor(lab.temp);
+  const textCol=contrastText(lab.temp);
+
+  // clothing items
+  const clothes=[];
+  if(lab.temp<-5){clothes.push({i:'🧥',n:'Пуховик'},{i:'🧤',n:'Рукавички'},{i:'🧣',n:'Шарф і шапка'},{i:'🥾',n:'Зимові черевики'});}
+  else if(lab.temp<=6){clothes.push({i:'🧥',n:'Тепла куртка'},{i:'🧣',n:'Шапка й шарф'},{i:'👖',n:'Теплі штани'});}
+  else if(lab.temp<=14){clothes.push({i:'🧥',n:'Легка куртка'},{i:'🧶',n:'Худі'},{i:'👟',n:'Кросівки'});}
+  else if(lab.temp<=22){clothes.push({i:'👕',n:'Футболка'},{i:'👖',n:'Джинси'},{i:'👟',n:'Кросівки'});}
+  else{clothes.push({i:'👕',n:'Легка футболка'},{i:'🩳',n:'Шорти'},{i:'🧢',n:'Панамка'},{i:'🕶️',n:'Окуляри'});}
+  if(lab.sky==='rain'||lab.sky==='storm'){clothes.push({i:'☔',n:'Парасолька'},{i:'🥾',n:'Гумові чоботи'});}
+
+  // fun fact
+  const fact=t('fact'+lab.fact);
+  const factIdx=lab.fact;
+
+  return `
+    <div class="card" style="background:linear-gradient(135deg,#F59E0B,#0EA5E9);color:#fff;border:0;">
+      <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;justify-content:space-between;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="font-size:2.8rem;background:rgba(255,255,255,.2);padding:8px;border-radius:18px;">${esc(p.avatar)}</span>
+          <div>
+            <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.25);padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;">✨ Метео-Помічник</span>
+            <h2 style="margin:6px 0 4px;font-size:1.25rem;font-weight:900;">${esc(p.name)}, експериментуймо!</h2>
+            <p style="margin:0;opacity:.92;font-size:.85rem;max-width:480px;">Змінюй температуру, крути компас та дивись, як природа підказує правильний одяг.</p>
+          </div>
+        </div>
+        <button class="btn" id="btnSaveLab" style="background:#fff;color:var(--ink);">💾 ${esc(t('save'))}</button>
+      </div>
+    </div>
+
+    <div class="lab-split">
+      <div class="card">
+        <h3 style="margin:0 0 4px;font-size:1rem;font-weight:900;">${esc(t('thermometer'))}</h3>
+        <p style="font-size:.75rem;color:var(--ink3);margin:0 0 12px;">${esc(t('thermHint'))}</p>
+        <div style="text-align:center;margin-bottom:8px;">
+          <span style="display:inline-block;padding:6px 18px;border-radius:14px;background:${col};color:${textCol};font-family:var(--mono);font-weight:900;font-size:1.5rem;box-shadow:var(--sh1);">${fmtTemp(lab.temp,S.units)}</span>
+        </div>
+        <div class="therm-box">
+          <div class="therm-stepper">
+            <button class="btn btn-sm touch-target" data-t="+5">+5°</button>
+            <button class="btn btn-sm touch-target" data-t="+1">+1°</button>
+            <button class="btn btn-sm touch-target" data-t="-1">-1°</button>
+            <button class="btn btn-sm touch-target" data-t="-5">-5°</button>
+          </div>
+          <div>
+            <div class="therm-tube"><div class="therm-mercury" style="height:${perc}%;background:${col};"></div></div>
+            <div class="therm-bulb" style="background:${col};">${lab.temp>0?'+':''}${lab.temp}°</div>
+          </div>
+        </div>
+        <input type="range" min="-25" max="40" value="${lab.temp}" id="sliderTemp" style="width:100%;margin-top:14px;accent-color:var(--acc);">
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 12px;font-size:1rem;font-weight:900;">${esc(t('skyState'))}</h3>
+        <div class="chip-grid" style="margin-bottom:20px;">
+          ${SKIES.map(s=>`<button class="sky-chip ${lab.sky===s.k?'selected':''}" data-sky="${s.k}"><span class="e">${s.e}</span><span>${esc(t(s.key))}</span></button>`).join('')}
+        </div>
+
+        <h3 style="margin:0 0 4px;font-size:1rem;font-weight:900;">${esc(t('windCompass'))}</h3>
+        <p style="font-size:.75rem;color:var(--ink3);margin:0 0 10px;">${esc(t('windHint'))}</p>
+        <div class="compass-dial" id="compassDial">
+          ${DIR_KEYS.map((k,i)=>{
+            const a=(i*45-90)*Math.PI/180;
+            const x=50+38*Math.cos(a),y=50+38*Math.sin(a);
+            return `<button class="compass-dot ${lab.dir===i?'active':''}" style="left:${x}%;top:${y}%;" data-dir="${i}" title="${esc(t(k))}">${esc(t(k))}</button>`;
+          }).join('')}
+          ${lab.dir!=null?`<div class="compass-vane" style="transform:rotate(${DIR_ANGLES[lab.dir]}deg);"></div>`:''}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.75rem;font-weight:700;color:var(--ink2);margin-top:6px;">
+          <span>${lab.dir!=null?esc(t(DIR_KEYS[lab.dir])):esc(t('dirCalm'))}</span>
+          <span style="font-family:var(--mono);">${fmtWind(lab.wind,S.units)}</span>
+        </div>
+        <input type="range" min="0" max="25" value="${lab.wind}" id="sliderWind" style="width:100%;margin-top:6px;accent-color:var(--sky);">
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn btn-sm" id="btnCalm" style="flex:1;">${esc(t('dirCalm'))}</button>
+          <button class="btn btn-sm" id="btnFresh" style="flex:1;">Свіжий вітер</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:1rem;font-weight:900;">👕 ${esc(t('whatToWear'))}</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;">
+        ${clothes.map(c=>`<div style="padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);display:flex;align-items:center;gap:10px;"><span style="font-size:1.8rem;">${c.i}</span><span style="font-weight:700;font-size:.8rem;">${esc(c.n)}</span></div>`).join('')}
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--ink);color:#fff;border:0;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div style="display:flex;gap:12px;align-items:center;flex:1;min-width:200px;">
+        <span style="font-size:2rem;">💡</span>
+        <div>
+          <span style="font-size:.65rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#FBBF24;">${esc(t('funFact'))}</span>
+          <p style="margin:3px 0 0;font-size:.85rem;font-weight:600;color:#F1F5F9;">${esc(fact)}</p>
+        </div>
+      </div>
+      <button class="btn btn-sm" id="btnFact" style="background:#1E293B;color:#FBBF24;border-color:#334155;">Ще →</button>
+    </div>`;
+}
+
+/* ─────────────── 15. View: Quests ─────────────── */
+function viewQuests(){
+  const lvl=level(),xp=totalXp(),cur=xp%150,prog=Math.min(100,Math.round(cur/150*100));
+  return `
+    <div class="card" style="background:linear-gradient(135deg,#F59E0B,#7C3AED,#4F46E5);color:#fff;border:0;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:60px;height:60px;border-radius:18px;background:rgba(255,255,255,.22);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:1.8rem;">🏆</div>
+          <div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span style="font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:999px;color:#FDE68A;">Рівень ${lvl}</span>
+              <span style="font-size:.75rem;font-weight:700;opacity:.85;">${xp} ${esc(t('xp'))}</span>
+            </div>
+            <h2 style="margin:5px 0 0;font-size:1.4rem;font-weight:900;">${esc(lvlTitle(lvl))}</h2>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,.14);padding:12px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.2);min-width:220px;">
+          <div style="display:flex;justify-content:space-between;font-size:.7rem;font-weight:800;margin-bottom:6px;"><span>До рівня ${lvl+1}</span><span style="font-family:var(--mono);">${cur}/150</span></div>
+          <div style="height:10px;border-radius:999px;background:rgba(0,0,0,.25);overflow:hidden;padding:2px;">
+            <div style="height:100%;width:${prog}%;border-radius:999px;background:linear-gradient(to right,#FBBF24,#FCD34D);transition:width .5s;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:1rem;font-weight:900;">⭐ ${esc(t('questsTitle'))}</h3>
+      <p style="font-size:.75rem;color:var(--ink2);margin:0 0 12px;">${esc(t('questsSub'))}</p>
+      <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
+        ${QUESTS.map(q=>{
+          const done=q.check(S);
+          return `<div class="quest-row ${done?'done':''}">
+            <span style="font-size:1.8rem;background:#fff;padding:8px;border-radius:12px;box-shadow:var(--sh1);">${q.icon}</span>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <strong style="font-size:.85rem;">${esc(t(q.titleK))}</strong>
+                <span style="font-size:.6rem;font-weight:900;background:var(--accS);color:#92400E;padding:2px 6px;border-radius:6px;">+${q.xp} XP</span>
+              </div>
+              <p style="font-size:.7rem;color:var(--ink2);margin:3px 0 0;">${esc(t(q.descK))}</p>
+            </div>
+            ${done?'<span style="color:#059669;font-size:1.3rem;">✓</span>':'<span style="width:20px;height:20px;border-radius:50%;border:2px solid #CBD5E1;"></span>'}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:1rem;font-weight:900;">🏅 Колекція бейджів</h3>
+      <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));">
+        ${BADGES.map(b=>{
+          const un=b.check(S);
+          return `<div class="badge-card ${un?'unlocked':'locked'}">
+            <span class="badge-icon">${b.icon}</span>
+            <strong class="badge-name">${esc(t(b.titleK))}</strong>
+            <span class="badge-desc">${esc(t(b.descK))}</span>
+            <span class="badge-status" style="${un?'background:#D1FAE5;color:#065F46;':'background:#E2E8F0;color:#475569;'}">${un?'Відкрито ✓':'Заблоковано'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+/* ─────────────── 16. View: Stats ─────────────── */
+function viewStats(){
+  const p=profile();
+  const prefix=viewY+'-'+String(viewM+1).padStart(2,'0')+'-';
+  const dim=daysInMonth(viewY,viewM);
+  const mrecs=Object.entries(p.records).filter(([k])=>k.startsWith(prefix))
+    .sort(([a],[b])=>a.localeCompare(b)).map(([k,r])=>({...r,key:k,day:+k.split('-')[2]}));
+
+  if(!mrecs.length)return `<div class="card"><h3 style="margin:0 0 8px;">${esc(t('chartTitle'))}</h3><p style="color:var(--ink3);text-align:center;padding:40px 0;font-size:.85rem;">${esc(t('chartEmpty'))}</p></div>`;
+
+  const temps=mrecs.map(r=>r.temp);
+  const avg=temps.reduce((a,b)=>a+b,0)/temps.length;
+  let maxRec=mrecs[0],minRec=mrecs[0],wet=0;const dirCount=[0,0,0,0,0,0,0,0];
+  mrecs.forEach(r=>{if(r.temp>maxRec.temp)maxRec=r;if(r.temp<minRec.temp)minRec=r;
+    if(['rain','storm','snow'].includes(r.sky))wet++;
+    if(r.dir!=null&&r.dir>=0&&r.dir<8)dirCount[r.dir]++;});
+  const maxDir=Math.max(...dirCount),topDir=maxDir>0?dirCount.indexOf(maxDir):null;
+
+  // SVG chart
+  const W=640,H=240,pL=45,pR=25,pT=20,pB=35;
+  const allT=[...mrecs.map(r=>toDispTemp(r.temp,S.units)),...mrecs.filter(r=>r.real).map(r=>toDispTemp(r.real.temp,S.units))];
+  let minT=Math.floor(Math.min(...allT)-2),maxT=Math.ceil(Math.max(...allT)+2);
+  if(minT===maxT){minT-=5;maxT+=5;}
+  const sx=d=>pL+((d-1)/(dim-1||1))*(W-pL-pR);
+  const sy=v=>H-pB-((v-minT)/(maxT-minT))*(H-pT-pB);
+  const userPts=mrecs.map(r=>`${sx(r.day)},${sy(toDispTemp(r.temp,S.units))}`).join(' ');
+  const satRecs=mrecs.filter(r=>r.real);
+  const satPts=satRecs.map(r=>`${sx(r.day)},${sy(toDispTemp(r.real.temp,S.units))}`).join(' ');
+  const zeroY=S.units==='metric'?sy(0):sy(32);
+  let grid='';
+  [minT,Math.round((minT+maxT)/2),maxT].forEach(v=>{
+    grid+=`<line x1="${pL}" x2="${W-pR}" y1="${sy(v)}" y2="${sy(v)}" stroke="#E2E8F0" stroke-dasharray="4 4"/>
+      <text x="${pL-8}" y="${sy(v)+4}" text-anchor="end" font-size="10" fill="#94A3B8" font-family="JetBrains Mono" font-weight="700">${v}°</text>`;
+  });
+  let dayMarks='';
+  [1,5,10,15,20,25,dim].forEach(d=>{if(d<=dim)dayMarks+=`<text x="${sx(d)}" y="${H-12}" text-anchor="middle" font-size="10" fill="#94A3B8" font-family="JetBrains Mono" font-weight="700">${d}</text>`;});
+  const chart=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;font-family:var(--font);">
+    ${grid}
+    ${zeroY>=pT&&zeroY<=H-pB?`<line x1="${pL}" x2="${W-pR}" y1="${zeroY}" y2="${zeroY}" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="2 3"/>`:''}
+    ${satRecs.length>1?`<polyline fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-dasharray="5 4" points="${satPts}"/>`:''}
+    ${mrecs.length>1?`<polyline fill="none" stroke="#0F172A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${userPts}"/>`:''}
+    ${satRecs.map(r=>`<circle cx="${sx(r.day)}" cy="${sy(toDispTemp(r.real.temp,S.units))}" r="3.5" fill="#F59E0B" stroke="#fff" stroke-width="1.5"/>`).join('')}
+    ${mrecs.map(r=>`<circle cx="${sx(r.day)}" cy="${sy(toDispTemp(r.temp,S.units))}" r="5.5" fill="${tempColor(r.temp)}" stroke="#fff" stroke-width="2"/>`).join('')}
+    ${dayMarks}
+  </svg>`;
+
+  // Wind rose
+  const sz=180,cn=sz/2,mr=60;
+  const pts=dirCount.map((c,i)=>{const a=(i*45-90)*Math.PI/180;const r=(c/Math.max(maxDir,1))*mr;return `${cn+r*Math.cos(a)},${cn+r*Math.sin(a)}`;}).join(' ');
+  const rose=`<svg viewBox="0 0 ${sz} ${sz}" style="width:180px;height:180px;">
+    <circle cx="${cn}" cy="${cn}" r="${mr*.5}" fill="none" stroke="#E2E8F0"/>
+    <circle cx="${cn}" cy="${cn}" r="${mr}" fill="none" stroke="#CBD5E1" stroke-width="1.5"/>
+    ${DIR_KEYS.map((k,i)=>{const a=(i*45-90)*Math.PI/180;const x2=cn+(mr+18)*Math.cos(a),y2=cn+(mr+18)*Math.sin(a);
+      return `<line x1="${cn}" y1="${cn}" x2="${cn+mr*Math.cos(a)}" y2="${cn+mr*Math.sin(a)}" stroke="#E2E8F0"/>
+        <text x="${x2}" y="${y2+3}" text-anchor="middle" font-size="9" fill="#64748B" font-weight="800" font-family="var(--font)">${esc(t(k))}</text>`;}).join('')}
+    ${dirCount.some(c=>c>0)?`<polygon points="${pts}" fill="rgba(2,132,199,.25)" stroke="#0284C7" stroke-width="2"/>`:''}
+  </svg>`;
+
+  return `
+    <div class="stat-grid" style="margin-bottom:16px;">
+      <div class="stat-card"><span class="stat-label">${esc(t('statAvg'))}</span><span class="stat-val">${fmtTemp(avg,S.units)}</span><span class="stat-sub">${mrecs.length} днів</span></div>
+      <div class="stat-card"><span class="stat-label">${esc(t('statMax'))}</span><span class="stat-val" style="color:#D97706;">${fmtTemp(maxRec.temp,S.units)}</span><span class="stat-sub">День ${maxRec.day}</span></div>
+      <div class="stat-card"><span class="stat-label">${esc(t('statMin'))}</span><span class="stat-val" style="color:#0284C7;">${fmtTemp(minRec.temp,S.units)}</span><span class="stat-sub">День ${minRec.day}</span></div>
+      <div class="stat-card"><span class="stat-label">${esc(t('statWet'))}</span><span class="stat-val" style="color:#4F46E5;">${wet}</span><span class="stat-sub">дощ/сніг/гроза</span></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <div>
+          <h3 style="margin:0;font-size:1rem;font-weight:900;">📈 ${esc(t('chartTitle'))}</h3>
+          <p style="margin:3px 0 0;font-size:.75rem;color:var(--ink2);">${esc(t('chartSub'))}</p>
+        </div>
+        <div style="display:flex;gap:14px;font-size:.7rem;font-weight:700;color:var(--ink2);">
+          <span><span style="display:inline-block;width:14px;height:2px;background:#0F172A;vertical-align:middle;margin-right:5px;"></span>${esc(t('chartLegendYou'))}</span>
+          <span><span style="display:inline-block;width:14px;height:2px;background:#F59E0B;vertical-align:middle;margin-right:5px;border-top:1px dashed #F59E0B;"></span>${esc(t('chartLegendSat'))}</span>
+        </div>
+      </div>
+      ${chart}
+    </div>
+
+    <div class="card" style="display:flex;flex-direction:column;align-items:center;">
+      <div style="width:100%;text-align:left;margin-bottom:6px;">
+        <h3 style="margin:0;font-size:1rem;font-weight:900;">🧭 ${esc(t('windRose'))}</h3>
+        <p style="margin:3px 0 0;font-size:.75rem;color:var(--ink2);">${topDir!=null?esc(t(DIR_KEYS[topDir])):esc(t('windRoseSub'))}</p>
+      </div>
+      ${rose}
+      <span style="font-size:.7rem;color:var(--ink3);text-align:center;margin-top:8px;">${esc(t('windRoseHint'))}</span>
+    </div>
+
+    <div class="card">
+      <button class="btn" id="toggleTable" style="width:100%;justify-content:space-between;background:transparent;border:0;font-size:.95rem;">
+        <span>📋 ${esc(t('tableTitle'))}</span>
+        <span style="color:#D97706;font-size:.75rem;">${esc(t('tableShow'))}</span>
+      </button>
+      <div id="tableWrap" style="display:none;overflow-x:auto;margin-top:12px;">
+        <table style="width:100%;border-collapse:collapse;font-size:.72rem;text-align:left;">
+          <thead><tr style="border-bottom:1px solid var(--line);color:var(--ink3);font-weight:800;text-transform:uppercase;font-size:.65rem;">
+            <th style="padding:8px 6px;">${esc(t('tDate'))}</th><th style="padding:8px 6px;">${esc(t('tTime'))}</th>
+            <th style="padding:8px 6px;">${esc(t('tTemp'))}</th><th style="padding:8px 6px;">${esc(t('tSky'))}</th>
+            <th style="padding:8px 6px;">${esc(t('tHum'))}</th><th style="padding:8px 6px;">${esc(t('tWind'))}</th>
+            <th style="padding:8px 6px;">${esc(t('tSat'))}</th><th style="padding:8px 6px;">${esc(t('tNotes'))}</th>
+          </tr></thead>
+          <tbody>
+            ${mrecs.map(r=>{
+              const so=skyObj(r.sky);
+              return `<tr style="border-bottom:1px solid #F1F5F9;font-weight:600;">
+                <td style="padding:8px 6px;font-family:var(--mono);font-weight:800;">${r.key}</td>
+                <td style="padding:8px 6px;font-family:var(--mono);color:var(--ink2);">${esc(r.t||'09:00')}</td>
+                <td style="padding:8px 6px;font-family:var(--mono);font-weight:800;">${fmtTemp(r.temp,S.units)}</td>
+                <td style="padding:8px 6px;">${so.e} ${esc(t(so.key))}</td>
+                <td style="padding:8px 6px;font-family:var(--mono);">${r.hum!=null?r.hum+'%':'—'}</td>
+                <td style="padding:8px 6px;font-family:var(--mono);">${r.wind!=null?fmtWind(r.wind,S.units):'—'}</td>
+                <td style="padding:8px 6px;font-family:var(--mono);color:#B45309;">${r.real?fmtTemp(r.real.temp,S.units):'—'}</td>
+                <td style="padding:8px 6px;color:var(--ink2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.notes)||'—'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* ─────────────── 17. Bind view handlers ─────────────── */
+function bindView(){
+  // Calendar
+  document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{playStep(+b.dataset.nav>0);viewM+=+b.dataset.nav;if(viewM<0){viewM=11;viewY--;}else if(viewM>11){viewM=0;viewY++;}render();});
+  const btnToday=document.getElementById('btnToday');
+  if(btnToday)btnToday.onclick=()=>{playTap();const d=new Date();viewY=d.getFullYear();viewM=d.getMonth();render();};
+  document.querySelectorAll('.cal-day').forEach(b=>b.onclick=()=>{if(b.disabled)return;playTap();openRecordModal(b.dataset.day);});
+  const btnAdd=document.getElementById('btnAdd');
+  if(btnAdd)btnAdd.onclick=()=>{playTap();openRecordModal(todayKey());};
+  const btnCompare=document.getElementById('btnCompare');
+  if(btnCompare)btnCompare.onclick=compareWithSatellite;
+  const btnPrint=document.getElementById('btnPrint');
+  if(btnPrint)btnPrint.onclick=()=>{playTap();renderPrint();setTimeout(()=>window.print(),100);};
+  const btnExport=document.getElementById('btnExport');
+  if(btnExport)btnExport.onclick=exportProfile;
+  const btnImport=document.getElementById('btnImport');
+  if(btnImport)btnImport.onclick=importProfile;
+
+  // Lab
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{playStep(+b.dataset.t>0);lab.temp=Math.min(45,Math.max(-30,lab.temp+(+b.dataset.t)));render();});
+  const sl=document.getElementById('sliderTemp');
+  if(sl)sl.oninput=e=>{lab.temp=+e.target.value;render();};
+  document.querySelectorAll('[data-sky]').forEach(b=>b.onclick=()=>{playTap();lab.sky=b.dataset.sky;render();});
+  document.querySelectorAll('[data-dir]').forEach(b=>b.onclick=()=>{playTap();lab.dir=+b.dataset.dir;render();});
+  const sw=document.getElementById('sliderWind');
+  if(sw)sw.oninput=e=>{lab.wind=+e.target.value;render();};
+  const btnCalm=document.getElementById('btnCalm');
+  if(btnCalm)btnCalm.onclick=()=>{playTap();lab.dir=null;lab.wind=0;render();};
+  const btnFresh=document.getElementById('btnFresh');
+  if(btnFresh)btnFresh.onclick=()=>{playTap();lab.dir=1;lab.wind=8;render();};
+  const btnFact=document.getElementById('btnFact');
+  if(btnFact)btnFact.onclick=()=>{playTap();lab.fact=(lab.fact+1)%6;render();};
+  const btnSaveLab=document.getElementById('btnSaveLab');
+  if(btnSaveLab)btnSaveLab.onclick=()=>{
+    playSuccess();confetti();
+    const tk=todayKey();
+    const ex=records()[tk];
+    records()[tk]={key:tk,temp:Math.round(lab.temp*10)/10,sky:lab.sky,t:ex?.t||'12:00',hum:ex?.hum||50,
+      wind:Math.round(lab.wind*10)/10,dir:lab.dir,mood:ex?.mood||'joy',
+      notes:ex?.notes?ex.notes+' · Лабораторія':'Спостереження через лабораторію',real:ex?.real||null};
+    save();toast(t('saved'));render();
+  };
+
+  // Stats table
+  const tt=document.getElementById('toggleTable');
+  if(tt)tt.onclick=()=>{const w=document.getElementById('tableWrap');w.style.display=w.style.display==='none'?'block':'none';};
+}
+
+/* ─────────────── 18. Record Modal ─────────────── */
+function openRecordModal(key){
+  const ex=records()[key];
+  const d={key,temp:ex?.temp??18,t:ex?.t??'09:00',sky:ex?.sky??'clear',hum:ex?.hum??55,
+    wind:ex?.wind??3,dir:ex?.dir??null,mood:ex?.mood??'joy',notes:ex?.notes??'',real:ex?.real||null};
+  const dateStr=new Intl.DateTimeFormat(S.lang,{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(key+'T00:00:00'));
+
+  const box=document.createElement('div');
+  box.className='modal-backdrop';
+  box.innerHTML=`
+    <div class="modal-box">
+      <div class="dlg-head">
+        <div>
+          <h3 style="margin:0;font-size:1.15rem;font-weight:900;text-transform:capitalize;">${esc(dateStr)}</h3>
+          <span style="font-size:.72rem;color:var(--ink2);font-weight:600;">${ex?'Редагування':'Новий запис'}</span>
+        </div>
+        <button class="btn btn-sm btn-icon" data-x>✕</button>
+      </div>
+      <form id="recForm" class="dlg-body">
+        <div class="field">
+          <label class="field-label">${esc(t('fTemp'))}</label>
+          <div class="temp-picker">
+            <button type="button" class="btn touch-target" data-td="-1" style="background:#EFF6FF;border-color:#BFDBFE;color:#1D4ED8;font-size:1.3rem;font-weight:900;height:60px;min-width:60px;">▼</button>
+            <div class="temp-big" id="tempDisplay"></div>
+            <button type="button" class="btn touch-target" data-td="1" style="background:#FEF3C7;border-color:#FCD34D;color:#B45309;font-size:1.3rem;font-weight:900;height:60px;min-width:60px;">▲</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">${esc(t('skyState'))}</label>
+          <div class="chip-grid wide" id="skyGrid">
+            ${SKIES.map(s=>`<button type="button" class="sky-chip ${d.sky===s.k?'selected':''}" data-rsky="${s.k}"><span class="e">${s.e}</span><span>${esc(t(s.key))}</span></button>`).join('')}
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field">
+            <label class="field-label">⏰ ${esc(t('fTime'))}</label>
+            <input type="time" id="fTime" value="${esc(d.t)}">
+          </div>
+          <div class="field">
+            <label class="field-label">${esc(t('fHum'))}</label>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="btn btn-sm" data-hd="-5" style="flex:0 0 42px;">−5</button>
+              <div style="flex:1;padding:8px;background:var(--sur2);border-radius:12px;text-align:center;font-family:var(--mono);font-weight:900;" id="humDisplay">${d.hum}%</div>
+              <button type="button" class="btn btn-sm" data-hd="5" style="flex:0 0 42px;">+5</button>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">${esc(t('fWind'))} & ${esc(t('fWindDir'))}</label>
+          <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <button type="button" class="btn btn-sm" data-wd="-1" style="flex:0 0 42px;">−1</button>
+            <div style="flex:1;padding:8px;background:var(--sur2);border-radius:12px;text-align:center;font-family:var(--mono);font-weight:900;" id="windDisplay"></div>
+            <button type="button" class="btn btn-sm" data-wd="1" style="flex:0 0 42px;">+1</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
+            ${DIR_KEYS.map((k,i)=>`<button type="button" class="btn btn-sm" data-rdir="${i}" style="${d.dir===i?'background:var(--sky);color:#fff;border-color:var(--sky);':''}font-size:.7rem;padding:6px 4px;">${esc(t(k))}</button>`).join('')}
+            <button type="button" class="btn btn-sm" data-rdir="null" style="${d.dir===null?'background:#1E293B;color:#fff;':''}grid-column:span 4;font-size:.72rem;">${esc(t('dirCalm'))}</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">${esc(t('howAreYou'))}</label>
+          <div style="display:flex;gap:5px;">
+            ${MOODS.map(m=>`<button type="button" class="btn btn-sm" data-rmood="${m.k}" style="flex:1;${d.mood===m.k?'background:var(--accS);border-color:var(--acc);':''}flex-direction:column;padding:8px 4px;font-size:.65rem;">${m.e}<br><span>${esc(t(m.key))}</span></button>`).join('')}
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">${esc(t('fNotes'))}</label>
+          <textarea id="fNotes" maxlength="300" placeholder="${esc(t('fNotesPH'))}">${esc(d.notes)}</textarea>
+        </div>
+        ${d.real?`<div style="padding:12px;border-radius:14px;background:#FEF3C7;border:1px solid #FCD34D;font-size:.75rem;">
+          <strong style="display:block;margin-bottom:8px;color:#92400E;">🛰️ ${esc(t('cmpTitle'))}</strong>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;text-align:center;">
+            <div style="background:#fff;padding:8px;border-radius:10px;"><small style="display:block;color:var(--ink3);font-size:.6rem;">${esc(t('cmpYou'))}</small><strong>${fmtTemp(d.temp,S.units)}</strong></div>
+            <div style="background:#fff;padding:8px;border-radius:10px;"><small style="display:block;color:var(--ink3);font-size:.6rem;">${esc(t('cmpSat'))}</small><strong>${fmtTemp(d.real.temp,S.units)}</strong></div>
+            <div style="background:#fff;padding:8px;border-radius:10px;"><small style="display:block;color:var(--ink3);font-size:.6rem;">${esc(t('cmpDiff'))}</small><strong style="color:#B45309;">${Math.abs(Math.round((d.temp-d.real.temp)*10)/10)}°</strong></div>
+          </div>
+        </div>`:''}
+      </form>
+      <div class="dlg-foot">
+        ${ex?`<button class="btn btn-sm" id="btnDelRec" style="color:#DC2626;border-color:#FECACA;margin-right:auto;">🗑️ ${esc(t('del'))}</button>`:''}
+        <button class="btn btn-sm" data-x>${esc(t('cancel'))}</button>
+        <button class="btn btn-sm btn-pri" id="btnSubmitRec">✓ ${esc(t('save'))}</button>
+      </div>
+    </div>`;
+  document.getElementById('modalRoot').appendChild(box);
+
+  const updateTempDisplay=()=>{
+    const el=box.querySelector('#tempDisplay');
+    const dv=toDispTemp(d.temp,S.units);
+    el.textContent=(dv>0?'+':'')+dv+'°'+(S.units==='imperial'?'F':'C');
+    el.style.background=tempColor(d.temp);el.style.color=contrastText(d.temp);
+  };
+  const updateWindDisplay=()=>{
+    box.querySelector('#windDisplay').textContent=fmtWind(d.wind,S.units);
+  };
+  updateTempDisplay();updateWindDisplay();
+
+  box.querySelectorAll('[data-td]').forEach(b=>b.onclick=()=>{playStep(+b.dataset.td>0);const dv=toDispTemp(d.temp,S.units)+( +b.dataset.td);d.temp=fromDispTemp(Math.round(dv*10)/10,S.units);updateTempDisplay();});
+  box.querySelectorAll('[data-hd]').forEach(b=>b.onclick=()=>{playStep(+b.dataset.hd>0);d.hum=Math.min(100,Math.max(0,d.hum+(+b.dataset.hd)));box.querySelector('#humDisplay').textContent=d.hum+'%';});
+  box.querySelectorAll('[data-wd]').forEach(b=>b.onclick=()=>{playStep(+b.dataset.wd>0);const dv=toDispWind(d.wind,S.units)+( +b.dataset.wd);d.wind=fromDispWind(Math.max(0,Math.round(dv*10)/10),S.units);updateWindDisplay();});
+  box.querySelectorAll('[data-rsky]').forEach(b=>b.onclick=()=>{playTap();d.sky=b.dataset.rsky;box.querySelectorAll('[data-rsky]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');});
+  box.querySelectorAll('[data-rdir]').forEach(b=>b.onclick=()=>{playTap();const v=b.dataset.rdir;d.dir=v==='null'?null:+v;if(d.dir===null)d.wind=0;box.querySelectorAll('[data-rdir]').forEach(x=>{x.style.background='';x.style.color='';x.style.borderColor='';});
+    if(d.dir===null){b.style.background='#1E293B';b.style.color='#fff';}else{b.style.background='var(--sky)';b.style.color='#fff';b.style.borderColor='var(--sky)';}updateWindDisplay();});
+  box.querySelectorAll('[data-rmood]').forEach(b=>b.onclick=()=>{playTap();d.mood=b.dataset.rmood;box.querySelectorAll('[data-rmood]').forEach(x=>{x.style.background='';x.style.borderColor='';});b.style.background='var(--accS)';b.style.borderColor='var(--acc)';});
+  box.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{playTap();box.remove();});
+  box.querySelector('#btnSubmitRec').onclick=()=>{
+    d.t=box.querySelector('#fTime').value;d.notes=box.querySelector('#fNotes').value;
+    playSuccess();confetti();
+    records()[key]={key,temp:Math.round(d.temp*10)/10,sky:d.sky,t:d.t,hum:d.hum,wind:Math.round(d.wind*10)/10,dir:d.dir,mood:d.mood,notes:d.notes,real:d.real};
+    save();box.remove();toast(t('saved'));render();
+  };
+  const btnDel=box.querySelector('#btnDelRec');
+  if(btnDel)btnDel.onclick=()=>{
+    if(!confirm(t('confirmDelRec')))return;
+    playTap();delete records()[key];save();box.remove();render();
+  };
+  box.addEventListener('click',e=>{if(e.target===box)box.remove();});
+}
+
+/* ─────────────── 19. City Modal ─────────────── */
+function openCityModal(){
+  const p=profile();
+  const box=document.createElement('div');
+  box.className='modal-backdrop';
+  box.innerHTML=`
+    <div class="modal-box" style="max-width:460px;">
+      <div class="dlg-head">
+        <h3 style="margin:0;font-size:1.05rem;font-weight:900;">🌍 ${esc(t('cityPick'))}</h3>
+        <button class="btn btn-sm btn-icon" data-x>✕</button>
+      </div>
+      <div class="dlg-body">
+        <form id="cityForm" style="display:flex;gap:6px;">
+          <input id="cityQ" placeholder="${esc(t('citySearchPH'))}" style="flex:1;padding:10px 14px;border-radius:12px;border:1px solid #CBD5E1;font-weight:600;">
+          <button type="submit" class="btn btn-pri">🔍</button>
+        </form>
+        <button class="btn" id="btnGeo" style="width:100%;margin-top:8px;">${esc(t('detectLoc'))}</button>
+        <div id="cityResults" style="margin-top:12px;max-height:280px;overflow-y:auto;"></div>
+        <p style="font-size:.68rem;color:var(--ink3);margin-top:12px;padding:8px;background:var(--sur2);border-radius:10px;line-height:1.5;">🔒 Для супутника надсилаються лише приблизні координати (~1 км). Ім'я та нотатки залишаються у браузері.</p>
+      </div>
+    </div>`;
+  document.getElementById('modalRoot').appendChild(box);
+  const close=()=>box.remove();
+  box.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{playTap();close();});
+  box.addEventListener('click',e=>{if(e.target===box)close();});
+  const results=box.querySelector('#cityResults');
+  const pick=c=>{p.city=c;save();playSuccess();close();render();};
+
+  box.querySelector('#cityForm').onsubmit=async e=>{
+    e.preventDefault();const q=box.querySelector('#cityQ').value;
+    if(q.length<2)return;
+    playTap();results.innerHTML='<div style="text-align:center;padding:20px;">⏳</div>';
+    const list=await searchCities(q,S.lang);
+    if(!list.length){results.innerHTML='<p style="text-align:center;color:var(--ink3);font-size:.8rem;padding:20px;">'+esc(t('cityNone'))+'</p>';return;}
+    results.innerHTML=list.map((c,i)=>`<button class="btn" data-i="${i}" style="width:100%;justify-content:flex-start;text-align:left;margin-bottom:5px;font-size:.8rem;padding:10px 14px;flex-direction:column;align-items:flex-start;gap:2px;">
+      <strong>${esc(c.name)}</strong>
+      <small style="color:var(--ink3);font-weight:600;">${esc([c.admin,c.country].filter(Boolean).join(', '))}</small>
+    </button>`).join('');
+    results.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>pick(list[+b.dataset.i]));
+  };
+  box.querySelector('#btnGeo').onclick=()=>{
+    if(!navigator.geolocation){toast('Геолокація недоступна');return;}
+    playTap();results.innerHTML='<div style="text-align:center;padding:20px;">📍 Визначаємо...</div>';
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      const c=await reverseGeo(pos.coords.latitude,pos.coords.longitude,S.lang);
+      if(c)pick(c);else results.innerHTML='<p style="color:var(--ink3);font-size:.8rem;text-align:center;padding:14px;">Не вдалося. Введи вручну.</p>';
+    },()=>{results.innerHTML='<p style="color:#DC2626;font-size:.8rem;text-align:center;padding:14px;">Дозволь доступ до геолокації.</p>';},{timeout:10000});
+  };
+}
+
+/* ─────────────── 20. Profile Modal ─────────────── */
+function openProfileModal(){
+  const box=document.createElement('div');
+  box.className='modal-backdrop';
+  const renderList=()=>{
+    box.innerHTML=`
+      <div class="modal-box" style="max-width:560px;">
+        <div class="dlg-head">
+          <h3 style="margin:0;font-size:1.05rem;font-weight:900;">👤 ${esc(t('profileTitle'))}</h3>
+          <button class="btn btn-sm btn-icon" data-x>✕</button>
+        </div>
+        <div class="dlg-body">
+          <p style="font-size:.78rem;color:var(--ink2);margin:0 0 14px;">${esc(t('profileSub'))}</p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            ${S.profiles.map(p=>{
+              const act=p.id===S.active;
+              return `<div style="padding:12px 14px;border-radius:14px;border:1px solid ${act?'var(--acc)':'var(--line)'};background:${act?'var(--accS)':'var(--sur2)'};display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="font-size:1.8rem;">${esc(p.avatar)}</span>
+                  <div>
+                    <strong style="font-size:.85rem;">${esc(p.name)}</strong>
+                    ${p.cls?`<span style="font-size:.62rem;background:#E2E8F0;padding:2px 6px;border-radius:5px;font-weight:700;margin-left:6px;">${esc(p.cls)}</span>`:''}
+                    <div style="font-size:.7rem;color:var(--ink3);margin-top:2px;">${Object.keys(p.records).length} ${esc(t('recCount'))} · ${esc(p.city.name)}</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  ${act?'<span class="btn btn-sm btn-acc" style="pointer-events:none;">✓ '+esc(t('active'))+'</span>':
+                    `<button class="btn btn-sm btn-pri" data-pick="${p.id}">${esc(t('choose'))}</button>`}
+                  ${S.profiles.length>1?`<button class="btn btn-sm btn-icon" data-del="${p.id}" style="color:#DC2626;">🗑️</button>`:''}
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+            <button class="btn" id="btnNew" style="flex:1;min-width:120px;">➕ ${esc(t('addStudent'))}</button>
+            <button class="btn" id="btnExp">⬇️ ${esc(t('export'))}</button>
+            <button class="btn" id="btnImp">⬆️ ${esc(t('import'))}</button>
+          </div>
+        </div>
+      </div>`;
+    box.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{playTap();box.remove();});
+    box.querySelectorAll('[data-pick]').forEach(b=>b.onclick=()=>{playSuccess();S.active=b.dataset.pick;save();box.remove();render();});
+    box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(!confirm(t('confirmDel')))return;playTap();S.profiles=S.profiles.filter(p=>p.id!==b.dataset.del);if(!S.profiles.length)S=defaultStore();else if(!S.profiles.some(p=>p.id===S.active))S.active=S.profiles[0].id;save();renderList();render();});
+    box.querySelector('#btnNew').onclick=renderNew;
+    box.querySelector('#btnExp').onclick=exportProfile;
+    box.querySelector('#btnImp').onclick=importProfile;
+  };
+  const renderNew=()=>{
+    let avatar=AVATARS[0];
+    box.innerHTML=`
+      <div class="modal-box" style="max-width:480px;">
+        <div class="dlg-head">
+          <h3 style="margin:0;font-size:1.05rem;font-weight:900;">➕ ${esc(t('newProfile'))}</h3>
+          <button class="btn btn-sm btn-icon" data-x>✕</button>
+        </div>
+        <form id="newProfForm" class="dlg-body">
+          <div class="field"><label class="field-label">${esc(t('nameField'))}</label><input id="nName" required placeholder="${esc(t('onbNamePH'))}"></div>
+          <div class="field"><label class="field-label">${esc(t('classField'))}</label><input id="nClass" value="3-А"></div>
+          <div class="field">
+            <label class="field-label">${esc(t('avatarField'))}</label>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;" id="avatarGrid">
+              ${AVATARS.map((a,i)=>`<button type="button" data-av="${a}" style="font-size:1.6rem;padding:8px;border-radius:12px;border:2px solid ${i===0?'var(--acc)':'var(--line)'};background:${i===0?'var(--accS)':'var(--sur2)'};">${a}</button>`).join('')}
+            </div>
+          </div>
+        </form>
+        <div class="dlg-foot">
+          <button class="btn btn-sm" id="btnBack">← ${esc(t('cancel'))}</button>
+          <button class="btn btn-sm btn-pri" id="btnSaveProf">✓ ${esc(t('saveProfile'))}</button>
+        </div>
+      </div>`;
+    box.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{playTap();box.remove();});
+    box.querySelector('#btnBack').onclick=renderList;
+    box.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{
+      playTap();avatar=b.dataset.av;
+      box.querySelectorAll('[data-av]').forEach(x=>{x.style.borderColor='var(--line)';x.style.background='var(--sur2)';});
+      b.style.borderColor='var(--acc)';b.style.background='var(--accS)';
+    });
+    box.querySelector('#btnSaveProf').onclick=()=>{
+      const n=box.querySelector('#nName').value.trim();
+      if(!n){toast('Введи ім\'я');return;}
+      const c=box.querySelector('#nClass').value.trim();
+      const np={id:'p_'+Date.now().toString(36),name:n.slice(0,40),cls:c.slice(0,15),avatar,city:{...DEFAULT_CITY},records:{},xp:0};
+      S.profiles.push(np);S.active=np.id;save();playSuccess();confetti();box.remove();render();
+    };
+  };
+  renderList();
+  document.getElementById('modalRoot').appendChild(box);
+  box.addEventListener('click',e=>{if(e.target===box)box.remove();});
+}
+
+/* ─────────────── 21. Settings Modal ─────────────── */
+function openSettingsModal(){
+  const box=document.createElement('div');
+  box.className='modal-backdrop';
+  const r=()=>{
+    box.innerHTML=`
+      <div class="modal-box" style="max-width:460px;">
+        <div class="dlg-head">
+          <h3 style="margin:0;font-size:1.05rem;font-weight:900;">⚙️ ${esc(t('setTitle'))}</h3>
+          <button class="btn btn-sm btn-icon" data-x>✕</button>
+        </div>
+        <div class="dlg-body">
+          <div style="padding:12px;border-radius:14px;background:var(--accS);border:1px solid #FCD34D;margin-bottom:16px;">
+            <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:800;font-size:.85rem;">
+              <span>✨ ${esc(t('setKid'))}</span>
+              <input type="checkbox" id="sKid" ${S.kidMode?'checked':''} style="width:18px;height:18px;accent-color:var(--acc);">
+            </label>
+            <p style="font-size:.7rem;color:#92400E;margin:6px 0 0;">${esc(t('setKidH'))}</p>
+          </div>
+
+          <div class="field">
+            <label class="field-label">${esc(t('setUnits'))}</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <button class="btn" data-u="metric" style="${S.units==='metric'?'background:var(--pri);color:#fff;':''}">${esc(t('setMetric'))}</button>
+              <button class="btn" data-u="imperial" style="${S.units==='imperial'?'background:var(--pri);color:#fff;':''}">${esc(t('setImperial'))}</button>
+            </div>
+          </div>
+
+          <div style="padding:12px;border-radius:14px;background:var(--sur2);border:1px solid var(--line);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:800;font-size:.85rem;">🔔 ${esc(t('setSound'))}</span>
+            <input type="checkbox" id="sSound" ${S.soundEnabled?'checked':''} style="width:18px;height:18px;accent-color:var(--acc);">
+          </div>
+
+          <label class="field-label">${esc(t('setA11y'))}</label>
+          <label style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:var(--sur2);border:1px solid var(--line);margin-bottom:6px;cursor:pointer;font-weight:700;font-size:.8rem;">
+            <span>${esc(t('setContrast'))}</span>
+            <input type="checkbox" id="sHc" ${S.a11y.hc?'checked':''} style="width:18px;height:18px;accent-color:var(--acc);">
+          </label>
+          <label style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:12px;background:var(--sur2);border:1px solid var(--line);cursor:pointer;font-weight:700;font-size:.8rem;">
+            <span>${esc(t('setRead'))}</span>
+            <input type="checkbox" id="sRead" ${S.a11y.readable?'checked':''} style="width:18px;height:18px;accent-color:var(--acc);">
+          </label>
+
+          <div style="padding:12px;border-radius:14px;background:#ECFDF5;border:1px solid #A7F3D0;color:#064E3B;font-size:.7rem;margin-top:16px;line-height:1.6;">${esc(t('privacy'))}</div>
+
+          <button class="btn" id="btnWipe" style="width:100%;margin-top:14px;color:#DC2626;border-color:#FECACA;">🗑️ ${esc(t('setWipe'))}</button>
+        </div>
+      </div>`;
+    box.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{playTap();box.remove();});
+    box.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{playTap();S.units=b.dataset.u;save();r();render();});
+    box.querySelector('#sKid').onchange=e=>{S.kidMode=e.target.checked;save();render();};
+    box.querySelector('#sSound').onchange=e=>{S.soundEnabled=e.target.checked;save();playTap();renderTopbar();};
+    box.querySelector('#sHc').onchange=e=>{S.a11y.hc=e.target.checked;save();render();};
+    box.querySelector('#sRead').onchange=e=>{S.a11y.readable=e.target.checked;save();render();};
+    box.querySelector('#btnWipe').onclick=()=>{if(!confirm(t('setWipeC')))return;playTap();localStorage.removeItem(STORAGE_KEY);S=defaultStore();save();box.remove();render();};
+  };
+  r();
+  document.getElementById('modalRoot').appendChild(box);
+  box.addEventListener('click',e=>{if(e.target===box)box.remove();});
+}
+
+/* ─────────────── 22. Export / Import ─────────────── */
+function exportProfile(){
+  playTap();
+  const p=profile();
+  const data={app:'MeteoJournal',version:7,exportedAt:new Date().toISOString(),profile:p};
+  const fn=`Meteo_${p.name.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.weather`;
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=fn;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  toast('💾 Файл збережено!');
+}
+function importProfile(){
+  playTap();
+  const inp=document.createElement('input');inp.type='file';inp.accept='.weather,.json';
+  inp.onchange=async e=>{
+    const f=e.target.files?.[0];if(!f)return;
+    try{
+      const text=await f.text();const j=JSON.parse(text);
+      if(j.profile&&typeof j.profile.name==='string'){
+        const np={id:'p_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+          name:String(j.profile.name).slice(0,40),cls:String(j.profile.cls||'').slice(0,15),
+          avatar:AVATARS.includes(j.profile.avatar)?j.profile.avatar:AVATARS[0],
+          city:j.profile.city||{...DEFAULT_CITY},records:j.profile.records||{},xp:+j.profile.xp||0};
+        S.profiles.push(np);S.active=np.id;save();playSuccess();confetti();toast('✅ Профіль імпортовано!');render();
+      }else toast('❌ Невірний формат файлу');
+    }catch(err){toast('❌ Помилка читання');}
+  };
+  inp.click();
+}
+
+/* ─────────────── 23. Compare with satellite ─────────────── */
+let comparing=false;
+async function compareWithSatellite(){
+  if(comparing)return;
+  const p=profile();
+  if(p.city.lat==null)return;
+  const prefix=viewY+'-'+String(viewM+1).padStart(2,'0')+'-';
+  const keys=Object.keys(p.records).filter(k=>k.startsWith(prefix));
+  if(!keys.length)return;
+  comparing=true;playTap();
+  toast('🛰️ ' + t('comparing'),5000);
+  try{
+    const data=await fetchOpenMeteo(p.city,keys);
+    Object.entries(data).forEach(([k,real])=>{if(p.records[k])p.records[k]={...p.records[k],real};});
+    save();playFanfare();confetti();
+    toast('✅ Дані з супутника отримано!');
+  }catch(e){console.error(e);toast('❌ Помилка зв\'язку');}
+  finally{comparing=false;render();}
+}
+
+/* ─────────────── 24. Print Report ─────────────── */
+function renderPrint(){
+  const p=profile();
+  const dim=daysInMonth(viewY,viewM);
+  const monthName=t('months')[viewM];
+  let rows='';
+  for(let d=1;d<=dim;d++){
+    const key=dateKey(viewY,viewM,d);
+    const r=p.records[key];
+    const so=r?skyObj(r.sky):null;
+    rows+=`<tr style="border-bottom:1px solid #ccc;">
+      <td style="border:1px solid #000;padding:3px;text-align:center;font-weight:700;">${d}</td>
+      <td style="border:1px solid #000;padding:3px;text-align:center;">${r?esc(r.t||'—'):'—'}</td>
+      <td style="border:1px solid #000;padding:3px;text-align:center;font-weight:700;font-family:monospace;">${r?fmtTemp(r.temp,S.units):'—'}</td>
+      <td style="border:1px solid #000;padding:3px;text-align:center;">${so?so.e+' '+t(so.key):'—'}</td>
+      <td style="border:1px solid #000;padding:3px;text-align:center;font-family:monospace;">${r&&r.hum!=null?r.hum+'%':'—'}</td>
+      <td style="border:1px solid #000;padding:3px;text-align:center;font-family:monospace;">${r&&r.wind!=null?fmtWind(r.wind,S.units):'—'}</td>
+      <td style="border:1px solid #000;padding:3px;font-style:italic;">${r?esc(r.notes):''}</td>
+    </tr>`;
+  }
+  document.getElementById('printReport').innerHTML=`
+    <div style="padding:20px;font-family:serif;color:#000;">
+      <div style="border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:20px;display:flex;justify-content:space-between;flex-wrap:wrap;">
+        <div>
+          <h1 style="margin:0;font-size:22px;font-weight:900;text-transform:uppercase;">${esc(t('printerTitle'))}</h1>
+          <p style="margin:4px 0 0;font-size:13px;font-weight:600;color:#555;">${esc(t('printerSub'))}</p>
+        </div>
+        <div style="font-size:11px;text-align:right;line-height:1.7;">
+          <div><strong>${esc(t('printerStudent'))}:</strong> ${esc(p.name)}</div>
+          <div><strong>${esc(t('printerClass'))}:</strong> ${esc(p.cls||'—')}</div>
+          <div><strong>${esc(t('printerCity'))}:</strong> ${esc(p.city.name)}</div>
+          <div><strong>${esc(t('printerMonth'))}:</strong> ${esc(monthName)} ${viewY}</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;text-align:center;">
+        <thead><tr style="background:#eee;border-bottom:1px solid #000;font-weight:700;text-transform:uppercase;">
+          <th style="border:1px solid #000;padding:4px;width:28px;">День</th>
+          <th style="border:1px solid #000;padding:4px;width:50px;">${esc(t('tTime'))}</th>
+          <th style="border:1px solid #000;padding:4px;width:60px;">${esc(t('tTemp'))}</th>
+          <th style="border:1px solid #000;padding:4px;width:80px;">${esc(t('tSky'))}</th>
+          <th style="border:1px solid #000;padding:4px;width:50px;">${esc(t('tHum'))}</th>
+          <th style="border:1px solid #000;padding:4px;width:70px;">${esc(t('tWind'))}</th>
+          <th style="border:1px solid #000;padding:4px;">${esc(t('tNotes'))}</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="margin-top:24px;padding-top:14px;border-top:1px solid #666;display:flex;justify-content:space-between;font-size:11px;">
+        <div>${esc(t('printerSign'))}: _____________________</div>
+        <div>${esc(t('printerGrade'))}: __________</div>
+        <div>${esc(t('printerDate'))}: _________________</div>
+      </div>
+    </div>`;
+}
+
+/* ─────────────── 25. Onboarding ─────────────── */
+function showOnboarding(){
+  let step=1,name='',cls='3-А',avatar=AVATARS[0],city={...DEFAULT_CITY};
+  const box=document.createElement('div');
+  box.className='modal-backdrop';
+  const r=()=>{
+    let body='';
+    if(step===1){
+      body=`<div style="padding:4px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--accS);color:#92400E;font-weight:900;font-size:.75rem;display:flex;align-items:center;justify-content:center;">1</span><strong style="font-size:.88rem;">${esc(t('onbStep1'))}</strong></div>
+      <div class="field"><label class="field-label">${esc(t('nameField'))}</label><input id="oName" value="${esc(name)}" placeholder="${esc(t('onbNamePH'))}" autofocus></div>
+      <div class="field"><label class="field-label">${esc(t('classField'))}</label><input id="oClass" value="${esc(cls)}" placeholder="${esc(t('onbClassPH'))}"></div>
+      <button class="btn btn-pri" id="oNext" style="width:100%;margin-top:8px;">${esc(t('nextBtn'))} →</button></div>`;
+    }else if(step===2){
+      body=`<div style="padding:4px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--accS);color:#92400E;font-weight:900;font-size:.75rem;display:flex;align-items:center;justify-content:center;">2</span><strong style="font-size:.88rem;">${esc(t('onbStep2'))}</strong></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        ${AVATARS.map(a=>`<button type="button" data-av="${a}" style="font-size:1.9rem;padding:10px;border-radius:16px;border:2px solid ${a===avatar?'var(--acc)':'var(--line)'};background:${a===avatar?'var(--accS)':'var(--sur2)'};">${a}</button>`).join('')}
+      </div>
+      <button class="btn btn-pri" id="oNext" style="width:100%;margin-top:14px;">${esc(t('nextBtn'))} →</button></div>`;
+    }else{
+      body=`<div style="padding:4px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--accS);color:#92400E;font-weight:900;font-size:.75rem;display:flex;align-items:center;justify-content:center;">3</span><strong style="font-size:.88rem;">${esc(t('onbStep3'))}</strong></div>
+      <form id="oCityForm" style="display:flex;gap:6px;"><input id="oCityQ" placeholder="${esc(t('onbCityPH'))}" style="flex:1;padding:10px 14px;border-radius:12px;border:1px solid #CBD5E1;"><button class="btn btn-pri">🔍</button></form>
+      <button class="btn" id="oGeo" style="width:100%;margin-top:8px;">${esc(t('detectLoc'))}</button>
+      <div id="oCityRes" style="margin-top:10px;max-height:180px;overflow-y:auto;"></div>
+      <div style="padding:10px;background:var(--accS);border-radius:12px;border:1px solid #FCD34D;margin-top:12px;font-weight:800;font-size:.8rem;">📍 ${esc(city.name)}</div>
+      <button class="btn btn-acc" id="oFinish" style="width:100%;margin-top:14px;font-size:.95rem;">🚀 ${esc(t('onbStart'))}</button></div>`;
+    }
+    box.innerHTML=`
+      <div class="modal-box" style="max-width:440px;">
+        <div style="background:linear-gradient(135deg,#F59E0B,#0EA5E9);padding:22px;text-align:center;color:#fff;">
+          <span style="font-size:2.6rem;">🌤️</span>
+          <h2 style="margin:6px 0 0;font-size:1.15rem;font-weight:900;">${esc(t('onbWelcome'))}</h2>
+          <p style="margin:4px 0 0;font-size:.72rem;opacity:.9;">${esc(t('tagline'))}</p>
+        </div>
+        <div class="dlg-body">${body}</div>
+      </div>`;
+    const next=box.querySelector('#oNext');
+    if(next)next.onclick=()=>{
+      playTap();
+      if(step===1){name=box.querySelector('#oName').value.trim();cls=box.querySelector('#oClass').value.trim();if(!name){toast('Введи ім\'я');return;}}
+      step++;r();
+    };
+    box.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{playTap();avatar=b.dataset.av;r();});
+    const form=box.querySelector('#oCityForm');
+    if(form)form.onsubmit=async e=>{
+      e.preventDefault();const q=box.querySelector('#oCityQ').value;
+      if(q.length<2)return;playTap();
+      const res=box.querySelector('#oCityRes');res.innerHTML='⏳';
+      const list=await searchCities(q,S.lang);
+      if(!list.length){res.innerHTML='<p style="font-size:.75rem;color:var(--ink3);text-align:center;">'+esc(t('cityNone'))+'</p>';return;}
+      res.innerHTML=list.map((c,i)=>`<button class="btn" data-i="${i}" style="width:100%;justify-content:flex-start;text-align:left;margin-bottom:4px;font-size:.75rem;">${esc(c.name)} — ${esc([c.admin,c.country].filter(Boolean).join(', '))}</button>`).join('');
+      res.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{playTap();city=list[+b.dataset.i];r();});
+    };
+    const geo=box.querySelector('#oGeo');
+    if(geo)geo.onclick=()=>{
+      if(!navigator.geolocation)return;
+      playTap();
+      navigator.geolocation.getCurrentPosition(async pos=>{const c=await reverseGeo(pos.coords.latitude,pos.coords.longitude,S.lang);if(c){city=c;r();}},()=>{});
+    };
+    const fin=box.querySelector('#oFinish');
+    if(fin)fin.onclick=()=>{
+      playSuccess();confetti();
+      const p=profile();p.name=name||'Юний синоптик';p.cls=cls;p.avatar=avatar;p.city=city;
+      S.onboarded=true;save();box.remove();render();
+    };
+  };
+  r();
+  document.getElementById('modalRoot').appendChild(box);
+}
+
+/* ─────────────── 26. PWA install prompt ─────────────── */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
+
+/* ─────────────── 27. Bootstrap ─────────────── */
+function boot(){
+  load();
+  render();
+  if(!S.onboarded)setTimeout(showOnboarding,400);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
+else boot();
+</script>
+</body>
+</html>
