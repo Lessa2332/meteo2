@@ -10,7 +10,7 @@
 <meta property="og:title" content="Метеощоденник — Дитяча метеолабораторія">
 <meta property="og:description" content="Квести, інтерактивний термометр, роза вітрів, офлайн-режим, PWA та порівняння з Open-Meteo.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌤️</text></svg>">
-   <link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json">
 <title>Метеощоденник — Дитяча метеолабораторія</title>
 <style>
 :root{
@@ -124,14 +124,40 @@ dialog::backdrop{background:rgba(15,23,42,.6);backdrop-filter:blur(4px)}
 .mobile-nav-btn.active{color:var(--acc)}
 .mobile-nav-btn svg{width:22px;height:22px}
 @media(min-width:768px){.mobile-nav{display:none}.shell{padding-bottom:24px}}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ДРУК / PDF — тут ховається ВЕСЬ застосунок і показується ТІЛЬКИ звіт
+   ═══════════════════════════════════════════════════════════════════ */
 .print-report{display:none}
+
 @media print{
   @page{margin:10mm;size:portrait}
   body{background:#fff !important;color:#000 !important}
-  .no-print{display:none !important}
-  .print-report{display:block !important}
-  .shell{padding:0 !important}
-  .tab-pane{display:none !important}
+
+  /* Ховаємо абсолютно все, крім звіту */
+  .shell,
+  .no-print,
+  #modalRoot,
+  #toastRoot,
+  dialog,
+  .mobile-nav,
+  .topbar,
+  .nav-tabs { display:none !important; }
+
+  /* Показуємо тільки контейнер звіту */
+  .print-report{
+    display:block !important;
+    padding:0 !important;
+    margin:0 !important;
+    background:#fff !important;
+    color:#000 !important;
+  }
+
+  /* Зберігаємо кольори елементів звіту при друці */
+  .print-report *{
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
+  }
 }
 </style>
 </head>
@@ -300,7 +326,7 @@ const MOODS = [
   {k:'wow',e:'🤩',key:'moodWow'},{k:'sleepy',e:'😴',key:'moodSleepy'}
 ];
 const DIR_KEYS = ['dirNorth','dirNE','dirEast','dirSE','dirSouth','dirSW','dirWest','dirNW'];
-const DIR_ANGLES = [180,225,270,315,0,45,90,135]; // compass deg for arrow pointing FROM direction
+const DIR_ANGLES = [180,225,270,315,0,45,90,135];
 const DEFAULT_CITY = {name:'Київ',admin:'Київська область',country:'Україна',lat:50.45,lon:30.52,tz:'Europe/Kyiv'};
 const BADGES = [
   {id:'first',icon:'🌱',titleK:'badgeFirst',descK:'badgeFirstD',check:s=>recCount()>=1},
@@ -551,7 +577,7 @@ function viewCalendar(){
   const p=profile();
   const tk=todayKey();
   const monthTitle=t('months')[viewM]+' '+viewY;
-  const startDow=(new Date(viewY,viewM,1).getDay()+6)%7; // Mon=0
+  const startDow=(new Date(viewY,viewM,1).getDay()+6)%7;
   const dim=daysInMonth(viewY,viewM);
   let cells='';
   for(let i=0;i<startDow;i++)cells+='<div></div>';
@@ -614,7 +640,6 @@ function viewLab(){
   const col=tempColor(lab.temp);
   const textCol=contrastText(lab.temp);
 
-  // clothing items
   const clothes=[];
   if(lab.temp<-5){clothes.push({i:'🧥',n:'Пуховик'},{i:'🧤',n:'Рукавички'},{i:'🧣',n:'Шарф і шапка'},{i:'🥾',n:'Зимові черевики'});}
   else if(lab.temp<=6){clothes.push({i:'🧥',n:'Тепла куртка'},{i:'🧣',n:'Шапка й шарф'},{i:'👖',n:'Теплі штани'});}
@@ -623,7 +648,6 @@ function viewLab(){
   else{clothes.push({i:'👕',n:'Легка футболка'},{i:'🩳',n:'Шорти'},{i:'🧢',n:'Панамка'},{i:'🕶️',n:'Окуляри'});}
   if(lab.sky==='rain'||lab.sky==='storm'){clothes.push({i:'☔',n:'Парасолька'},{i:'🥾',n:'Гумові чоботи'});}
 
-  // fun fact
   const fact=t('fact'+lab.fact);
   const factIdx=lab.fact;
 
@@ -791,7 +815,6 @@ function viewStats(){
     if(r.dir!=null&&r.dir>=0&&r.dir<8)dirCount[r.dir]++;});
   const maxDir=Math.max(...dirCount),topDir=maxDir>0?dirCount.indexOf(maxDir):null;
 
-  // SVG chart
   const W=640,H=240,pL=45,pR=25,pT=20,pB=35;
   const allT=[...mrecs.map(r=>toDispTemp(r.temp,S.units)),...mrecs.filter(r=>r.real).map(r=>toDispTemp(r.real.temp,S.units))];
   let minT=Math.floor(Math.min(...allT)-2),maxT=Math.ceil(Math.max(...allT)+2);
@@ -819,7 +842,6 @@ function viewStats(){
     ${dayMarks}
   </svg>`;
 
-  // Wind rose
   const sz=180,cn=sz/2,mr=60;
   const pts=dirCount.map((c,i)=>{const a=(i*45-90)*Math.PI/180;const r=(c/Math.max(maxDir,1))*mr;return `${cn+r*Math.cos(a)},${cn+r*Math.sin(a)}`;}).join(' ');
   const rose=`<svg viewBox="0 0 ${sz} ${sz}" style="width:180px;height:180px;">
@@ -897,7 +919,6 @@ function viewStats(){
 
 /* ─────────────── 17. Bind view handlers ─────────────── */
 function bindView(){
-  // Calendar
   document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{playStep(+b.dataset.nav>0);viewM+=+b.dataset.nav;if(viewM<0){viewM=11;viewY--;}else if(viewM>11){viewM=0;viewY++;}render();});
   const btnToday=document.getElementById('btnToday');
   if(btnToday)btnToday.onclick=()=>{playTap();const d=new Date();viewY=d.getFullYear();viewM=d.getMonth();render();};
@@ -913,7 +934,6 @@ function bindView(){
   const btnImport=document.getElementById('btnImport');
   if(btnImport)btnImport.onclick=importProfile;
 
-  // Lab
   document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{playStep(+b.dataset.t>0);lab.temp=Math.min(45,Math.max(-30,lab.temp+(+b.dataset.t)));render();});
   const sl=document.getElementById('sliderTemp');
   if(sl)sl.oninput=e=>{lab.temp=+e.target.value;render();};
@@ -938,7 +958,6 @@ function bindView(){
     save();toast(t('saved'));render();
   };
 
-  // Stats table
   const tt=document.getElementById('toggleTable');
   if(tt)tt.onclick=()=>{const w=document.getElementById('tableWrap');w.style.display=w.style.display==='none'?'block':'none';};
 }
@@ -1442,7 +1461,6 @@ let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
 window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
 
-/* ─────────────── 27. Bootstrap ─────────────── */
 /* ─────────────── 27. Bootstrap ─────────────── */
 function boot(){
   load();
