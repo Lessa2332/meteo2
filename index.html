@@ -1443,6 +1443,7 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPro
 window.addEventListener('appinstalled',()=>{deferredPrompt=null;});
 
 /* ─────────────── 27. Bootstrap ─────────────── */
+/* ─────────────── 27. Bootstrap ─────────────── */
 function boot(){
   load();
   render();
@@ -1450,17 +1451,15 @@ function boot(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);
 else boot();
-</script>
 
-<!-- Service Worker registration -->
-<script>
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('[SW] Зареєстровано:', reg.scope))
-        .catch(err => console.warn('[SW] Помилка:', err));
-    });
-  }
+/* ─────────────── 28. Service Worker registration ─────────────── */
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('[SW] Зареєстровано:', reg.scope))
+      .catch(err => console.warn('[SW] Помилка:', err));
+  });
+}
 </script>
 </body>
 </html>
